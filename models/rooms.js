@@ -8,11 +8,11 @@ const BedSchema = new Schema({
         required: true
     },
     status: {
-        type: String,
+        type: String, 
         enum: ['available', 'occupied'],
         default: 'available'
     }
-});
+}); 
 
 // Define schema for Room
 const RoomSchema = new Schema({

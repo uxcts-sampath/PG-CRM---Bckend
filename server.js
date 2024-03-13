@@ -8,8 +8,11 @@ const authRoutes = require('./routes/auth.route')
 const cors = require("cors");
 const floorRoutes = require('./routes/floor.route');
 const roomRoutes = require('./routes/room.route');
-const staffRoutes = require('./routes/hostel_staff');
 const hosteluserRoute = require('./routes/hostelusers.route');
+const hostel_staffRoute = require('./routes/hostel_staff.route')
+const paymentRoutes = require('./routes/payment.route');
+const hostelMembershipRoute = require('./routes/hostel_membership.route');
+
 
 
 mongoose.connect(process.env.MONGO_URI)
@@ -23,6 +26,9 @@ mongoose.connect(process.env.MONGO_URI)
 const app = express();
 app.use(express.json());
 
+app.use(cors());
+
+
 app.listen(3000, () => {
     console.log(`server listening on port 3000`);
 })
@@ -33,9 +39,10 @@ app.use('/api', userRoutes);
 app.use('/api', authRoutes);
 app.use('/api', floorRoutes);
 app.use('/api', roomRoutes );
-app.use('/api', staffRoutes );
 app.use('/api',hosteluserRoute);
-
+app.use('/api',hostel_staffRoute)
+app.use('/api', paymentRoutes);
+app.use('/api', hostelMembershipRoute)
 
 
 app.use((err, req, res, next) => {

@@ -1,8 +1,10 @@
+
+// routes/hostelMembershipRoutes.js
+
 const express = require('express');
-const { signup, signin, logout, forgotpassword, resetpassword, resetPasswordPage,getUserDetails,checkEmailAvailability } = require('../controllers/auth.controller');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-
+const {createHostelMembership}  = require('../controllers/hostelMembership.controller');
 
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization;
@@ -11,6 +13,7 @@ const verifyToken = (req, res, next) => {
     }
   
     try {
+      // Verify the JWT token and extract the user ID
       const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET); 
       req.userId = decoded.id; // Attach userId to the request object
       next();
@@ -19,13 +22,8 @@ const verifyToken = (req, res, next) => {
     }
   };
 
-router.post('/signup', signup);
-router.post('/signin', signin);
-router.get('/logout', logout);
-router.post('/forgotpassword', forgotpassword);
-router.post('/resetpassword', resetpassword);
-router.get('/resetpassword/:userId/:token', resetPasswordPage); 
-router.get('/user/:userId',verifyToken, getUserDetails);
-router.post('/checkEmailAvailability', checkEmailAvailability);
+// Define routes
+router.post('/create',verifyToken, createHostelMembership);
+// Define other routes for CRUD operations
 
 module.exports = router;

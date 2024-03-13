@@ -4,25 +4,30 @@ const hostelStaffSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     staffType: { type: String, enum: [
         'Manager',
-'reception',
-'chief warden',
-'warden boys',
-'warden girls',
-'care taker',
-'employee',
-'House keeping',
-'Sales & Marketing',
-'cook',
-'Helper',
-'Gardner',
-'Security'     
-    ], required: true },
+        'Reception',
+        'Chief Warden',
+        'Warden Boys',
+        'Warden Girls',
+        'Care Taker',
+        'Employee',
+        'House Keeping',
+        'Sales & Marketing',
+        'Cook',
+        'Helper',
+        'Gardner',
+        'Security'
+      ], required: true },
     name: { type: String, required: true },
     fatherName: { type: String, required: true },
     mobile: { type: String, required: true },
     age: { type: Number, required: true },
     referredBy: { type: String },
     aadharNumber: { type: String, required: true },
+    shifts: {
+        type: String,
+        enum: ['Day', 'Night', 'Full Day'],
+        required: true
+      },
     previouslyWorkedAt: { type: String },
     uploadAadhar: { type: String }, // You may store the file path or reference to the uploaded file
     addressProof: { type: String }, // You may store the file path or reference to the uploaded file

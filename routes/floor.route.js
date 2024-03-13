@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Floor = require('../models/floor');
 const jwt = require('jsonwebtoken');
+const Room=require('../models/rooms')
 
-
+const {pgfloor,getAllFloors,deleteFloor}=require("../controllers/floor.controller")
 
 // Middleware function to verify JWT token
 const verifyToken = (req, res, next) => {
@@ -48,30 +49,25 @@ router.get('/floors', verifyToken, async (req, res) => {
   }
 });
 
-router.delete('/floor/:id', verifyToken, async (req, res) => {
+router.delete('/floors/:floorId', async (req, res) => {
+  const { floorId } = req.params;
+
   try {
-    const { id } = req.params; // Extract the floor ID from the request parameters
-
-    // Find the floor by ID
-    const floor = await Floor.findById(id);
-
-    if (!floor) {
-      return res.status(404).json({ success: false, message: 'Floor not found' });
+    // Check if the floor has any associated rooms
+    const roomsCount = await Room.countDocuments({ floor: floorId });
+    if (roomsCount > 0) {
+      return res.status(400).json({ success: false, message: 'Cannot delete floor with associated rooms Please delete room' });
     }
 
-    // Delete rooms associated with the floor
-    await Room.deleteMany({ floorId: id }); // Potential issue here
+    // If there are no associated rooms, proceed with deleting the floor
+    await Floor.findByIdAndDelete(floorId);
 
-    // Delete the floor
-    await floor.deleteOne(); // Or floor.remove() if you prefer
-
-    res.json({ success: true, message: 'Floor and associated rooms deleted successfully' });
+    res.json({ success: true, message: 'Floor deleted successfully' });
   } catch (error) {
-    console.error('Error deleting floor and associated rooms:', error);
-    res.status(500).json({ success: false, message: 'Error deleting floor and associated rooms' });
+    console.error('Error deleting floor:', error);
+    res.status(500).json({ success: false, message: 'Error deleting floor' });
   }
 });
-
 
 
 
