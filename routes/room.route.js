@@ -132,4 +132,25 @@ router.delete('/rooms/floor/:floorId', async (req, res) => {
 }
 });
 
+
+// GET endpoint to fetch room details based on room ID
+router.get('/room/:roomId', verifyToken, async (req, res) => {
+  try {
+    const { roomId } = req.params; // Extract roomId from URL parameters
+
+    // Find the room by its ID
+    const room = await Room.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ success: false, message: 'Room not found' });
+    }
+
+    // Return the room details
+    res.json(room);
+  } catch (error) {
+    console.error('Error fetching room details:', error);
+    res.status(500).json({ success: false, message: 'Error fetching room details' });
+  }
+});
+
+
 module.exports = router;

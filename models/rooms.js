@@ -37,7 +37,10 @@ const RoomSchema = new Schema({
     },
     numberOfBeds: {
         type: Number,
-        required: true
+        default: 1, // Default to 1 bed
+        required: function() {
+            return this.type === 'shared'; // Require numberOfBeds only for shared rooms
+        }
     },
     beds: [BedSchema] // Array of beds within the room
 });

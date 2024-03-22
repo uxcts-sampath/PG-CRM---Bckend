@@ -1,6 +1,7 @@
 
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
+const Payment = require('../models/payment')
 const jwt = require('jsonwebtoken');
 const { errorHandler } = require('../utils/error');
 const jwtSecret = process.env.JWT_SECRET;
@@ -54,25 +55,112 @@ const signup = async (req, res, next) => {
 };
 
 
+// const signin = async (req, res, next) => {
+//     try {
+//         const { email, password } = req.body;
+//         const validUser = await User.findOne({ email });
+//         if (!validUser) {
+//             throw errorHandler(404, 'User not found');
+//         }
+//         const validPassword = bcrypt.compareSync(password, validUser.password);
+//         if (!validPassword) {
+//             throw errorHandler(401, 'Wrong Credentials');
+//         }
+        
+//         // Check if the user has a membership
+//         const hasMembership = await Membership.findOne({ userId: validUser._id });
+
+//         // Generate token and refreshToken
+//         const token = jwt.sign({ id: validUser._id }, jwtSecret, { expiresIn: '1d' });
+//         const refreshToken = jwt.sign({ id: validUser._id }, jwtSecret, { expiresIn: '1d' });
+
+//         // If the user doesn't have a membership, set a flag to indicate that a membership plan needs to be selected
+//         const responseData = {
+//             token: token,
+//             refreshToken: refreshToken,
+//             user: { 
+//                 id: validUser._id,
+//                 fullName: validUser.fullName,
+//                 hostelName: validUser.hostelName,
+//                 email: validUser.email,
+//                 aadharNumber: validUser.aadharNumber,
+//                 dateOfBirth: validUser.dateOfBirth,
+//                 phoneNumber: validUser.phoneNumber,
+//                 address: validUser.address,
+//                 country: validUser.country,
+//                 state: validUser.state,
+//                 city: validUser.city,
+//                 userSize: validUser.userSize,
+//                 hasMembership: !!hasMembership // Convert to boolean
+//             }
+//         };
+
+//         // If the user doesn't have a membership, send a flag indicating that the user needs to select a membership plan
+//         if (!hasMembership) {
+//             responseData.selectMembershipPlan = true;
+//         }
+
+//         res.setHeader('Authorization', `Bearer ${token}`);
+//         res.status(200).json(responseData);
+      
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
+
 const signin = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const validUser = await User.findOne({ email });
+
         if (!validUser) {
             throw errorHandler(404, 'User not found');
         }
-        const validPassword = bcrypt.compareSync(password, validUser.password);
-        if (!validPassword) {
-            throw errorHandler(401, 'Wrong Credentials');
+
+        const today = new Date(); // Define today's date
+        
+        // Retrieve payment information for the user
+        const payment = await Payment.findOne({ userId: validUser._id });
+
+        // Calculate suspension date based on payment information
+        const suspensionEndDate = payment ? payment.suspensionDate : null;
+        const suspensionDate = suspensionEndDate < today ? today : suspensionEndDate;
+
+        // Check if the user has an active payment plan
+        const activePaymentPlan = await Payment.findOne({
+            userId: validUser._id,
+            toDate: { $gte: today }
+        });
+
+        // Determine if the user has used the free payment plan
+        const hasUsedFreePlan = payment && payment.paymentPlan === 'free';
+
+        // Determine if the user has already used the free payment plan based on email ID
+        const existingFreePlanUser = await Payment.findOne({
+            email: email,
+            paymentPlan: 'free'
+        });
+
+        // Determine if the free option should be hidden
+        const hideFreeOption = hasUsedFreePlan || !!existingFreePlanUser;
+
+        // If the user has already used the free plan and is trying to select it again, throw an error
+        if (hideFreeOption && req.body.paymentPlan === 'free') {
+            throw errorHandler(400, 'You have already used the free payment plan.');
         }
+
+        const transactionId = payment ? payment.transactionId : null;
+
+        // Generate token and refreshToken
         const token = jwt.sign({ id: validUser._id }, jwtSecret, { expiresIn: '1d' });
         const refreshToken = jwt.sign({ id: validUser._id }, jwtSecret, { expiresIn: '1d' });
-       
 
+        // Construct response data
         const responseData = {
             token: token,
-            refreshToken:refreshToken,
-            user: { 
+            refreshToken: refreshToken,
+            user: {
                 id: validUser._id,
                 fullName: validUser.fullName,
                 hostelName: validUser.hostelName,
@@ -84,16 +172,37 @@ const signin = async (req, res, next) => {
                 country: validUser.country,
                 state: validUser.state,
                 city: validUser.city,
-                userSize: validUser.userSize
+                userSize: validUser.userSize,
+                hasActivePaymentPlan: !!activePaymentPlan,
+                selectPaymentPlan: suspensionDate !== null, 
+                suspensionDate: suspensionDate,
+                paymentPlan: payment ? payment.paymentPlan : null,
+                hideFreeOption: hideFreeOption,
+                transactionId: transactionId
             }
         };
+
+        // Set tokens in the response header and send response
         res.setHeader('Authorization', `Bearer ${token}`);
         res.status(200).json(responseData);
-      
     } catch (error) {
         next(error);
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const logout = async (req, res) => {
     try {

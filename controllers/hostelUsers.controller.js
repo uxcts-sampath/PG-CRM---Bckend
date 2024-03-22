@@ -27,9 +27,8 @@ const createHostelUser = async (req, res) => {
             return res.status(400).json({ message: 'Bed not available' });
         }
 
-        // Update bed status to 'occupied'
+        // Update bed status to 'occupied' only if creation is successful
         foundRoom.beds.find(b => b.bedNumber === bed).status = 'occupied';
-        await foundRoom.save();
 
         // Creating new hostel user...
         const hostelUser = new HostelUser({
@@ -43,7 +42,11 @@ const createHostelUser = async (req, res) => {
         // Save the hostel user to the database
         await hostelUser.save();
 
+        // If hostel user creation is successful, send status 201 and update bed status
         res.status(201).json(hostelUser);
+
+        // Save the updated room with the occupied bed status
+        await foundRoom.save();
     } catch (error) {
         console.error('Error creating hostel user:', error);
         res.status(400).json({ message: error.message });
@@ -52,29 +55,20 @@ const createHostelUser = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-const assignBed = async (floorNumber, roomNumber, bedNumber) => {
+const assignBed = async (floorId, roomId, bedNumber) => {
     try {
-        const room = await Room.findOne({ floor: floorNumber, roomNumber });
+        const room = await Room.findOne({ _id: roomId, floor: floorId });
         if (!room) {
             throw new Error('Room not found');
         }
 
         // Find the bed within the room
         const bed = room.beds.find(bed => bed.bedNumber === bedNumber);
-        if (!bed || bed.status !== 'available') {
-            throw new Error('Bed not available');
+        if (!bed) {
+            throw new Error('Bed not found in the specified room');
+        }
+        if (bed.status !== 'available') {
+            throw new Error('Bed is not available');
         }
 
         // Update bed status to 'occupied'
@@ -88,6 +82,8 @@ const assignBed = async (floorNumber, roomNumber, bedNumber) => {
         throw new Error('Failed to assign bed: ' + error.message);
     }
 };
+
+
 
 
 
@@ -118,30 +114,96 @@ const getHostelUserById = async (req, res) => {
     }
 };
 
+// const updateHostelUserById = async (req, res, userId, id) => {
+//     try {
+//         console.log('Received PUT request to update user with ID:', id);
+//         console.log('Request body:', req.body);
+
+//         const { bed: newBedNumber, floor: newFloorId, room: newRoomId, ...userData } = req.body;
+
+//         const hostelUser = await HostelUser.findById(id);
+//         if (!hostelUser) {
+//             return res.status(404).json({ success: false, message: 'Hostel user not found' });
+//         }
+
+//         if (newBedNumber && newBedNumber !== hostelUser.bed) {
+//             const newBed = await assignBed(newFloorId.toString(), newRoomId.toString(), newBedNumber);
+//             if (!newBed) {
+//                 return res.status(400).json({ success: false, message: 'Failed to assign new bed' });
+//             }
+//             const oldRoom = await Room.findById(hostelUser.room);
+//             if (oldRoom) {
+//                 oldRoom.beds.find(bed => bed.bedNumber === hostelUser.bed).status = 'available';
+//                 await oldRoom.save();
+//             }
+//             hostelUser.bed = newBedNumber;
+//             hostelUser.room = newRoomId;
+//         }
+
+//         if (newFloorId && newRoomId && (newFloorId.toString() !== hostelUser.floor.toString() || newRoomId.toString() !== hostelUser.room.toString())) {
+//             hostelUser.floor = newFloorId;
+//             hostelUser.room = newRoomId;
+//         }
+
+//         // Update user's details
+//         Object.assign(hostelUser, userData);
+
+//         const updatedUser = await hostelUser.save();
+//         console.log('User updated successfully:', updatedUser);
+
+//         res.status(200).json({ success: true, message: 'User updated successfully', hostelUser: updatedUser });
+//     } catch (error) {
+//         console.error('Error updating user:', error);
+//         res.status(500).json({ success: false, message: 'Internal server error' });
+//     }
+// };
+
+
+
 const updateHostelUserById = async (req, res, userId, id) => {
     try {
         console.log('Received PUT request to update user with ID:', id);
-        
-        // Log the request body to inspect the payload data
         console.log('Request body:', req.body);
-    
-        // Implement logic to update user data in the database
-        const updatedUser = await HostelUser.findByIdAndUpdate(id, req.body, { new: true });
-        
-        // Fetch updated user data
+
+        const { bed: newBedNumber, floor: newFloorId, room: newRoomId, ...userData } = req.body;
+
         const hostelUser = await HostelUser.findById(id);
-        
-        // Log database operations
-        console.log('Updating user data in the database...');
-        
-        // Send a success response back to the frontend with the updated user data
-        res.status(201).json({ success: true, message: 'User updated successfully', hostelUser });
+        if (!hostelUser) {
+            return res.status(404).json({ success: false, message: 'Hostel user not found' });
+        }
+
+        if (newBedNumber && newBedNumber !== hostelUser.bed) {
+            const newBed = await assignBed(newFloorId.toString(), newRoomId.toString(), newBedNumber);
+            if (!newBed) {
+                return res.status(400).json({ success: false, message: 'Failed to assign new bed' });
+            }
+            const oldRoom = await Room.findById(hostelUser.room);
+            if (oldRoom) {
+                oldRoom.beds.find(bed => bed.bedNumber === hostelUser.bed).status = 'available';
+                await oldRoom.save();
+            }
+            hostelUser.bed = newBedNumber;
+            hostelUser.room = newRoomId;
+        }
+
+        if (newFloorId && newRoomId && (newFloorId.toString() !== hostelUser.floor.toString() || newRoomId.toString() !== hostelUser.room.toString())) {
+            hostelUser.floor = newFloorId;
+            hostelUser.room = newRoomId;
+        }
+
+        // Update user's details
+        Object.assign(hostelUser, userData);
+
+        const updatedUser = await hostelUser.save();
+        console.log('User updated successfully:', updatedUser);
+
+        res.status(200).json({ success: true, message: 'User updated successfully', hostelUser: updatedUser });
     } catch (error) {
-        // Handle errors and send an error response
         console.error('Error updating user:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
+
 
 
 

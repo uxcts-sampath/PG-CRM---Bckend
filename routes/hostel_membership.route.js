@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {createHostelMembership}  = require('../controllers/hostelMembership.controller');
+const {createHostelMembership,getAllHostelMembershipsByUserId}  = require('../controllers/hostelMembership.controller');
 
 const verifyToken = (req, res, next) => {
     const token = req.headers.authorization;
@@ -24,6 +24,7 @@ const verifyToken = (req, res, next) => {
 
 // Define routes
 router.post('/create',verifyToken, createHostelMembership);
+router.get('/membership/:userId', verifyToken, getAllHostelMembershipsByUserId);
 // Define other routes for CRUD operations
 
 module.exports = router;
