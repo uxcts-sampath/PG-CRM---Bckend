@@ -12,12 +12,14 @@ const hosteluserRoute = require('./routes/hostelusers.route');
 const hostel_staffRoute = require('./routes/hostel_staff.route')
 const paymentRoutes = require('./routes/payment.route');
 const hostelMembershipRoute = require('./routes/hostel_membership.route');
+const hostelIncome = require ("./routes/hostelIncome.route")
+const PriceRoute = require ("./routes/price.route")
 
 
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => {
-    console.log('db respondeding');
+    console.log('db responding');
 })
 .catch((err) => {
     console.log(err);
@@ -43,6 +45,8 @@ app.use('/api',hosteluserRoute);
 app.use('/api',hostel_staffRoute)
 app.use('/api', paymentRoutes);
 app.use('/api', hostelMembershipRoute)
+app.use('/api', hostelIncome)
+app.use('/api', PriceRoute)
 
 
 app.use((err, req, res, next) => {

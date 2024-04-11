@@ -355,7 +355,7 @@ const newPayment = async (req, res) => {
                 name: req.body.name,
                 merchantUserId: merchantUserId,
                 amount: amount * 100,
-                redirectUrl: `https://api.phonepe.com/${process.env.MERCHANT_ID}/${merchantTransactionId}`,
+                redirectUrl: `https://boarderbase.com/${process.env.MERCHANT_ID}/${merchantTransactionId}`,
                 redirectMode: 'POST',
                 mobileNumber: req.body.number,
                 paymentInstrument: { 
@@ -370,7 +370,7 @@ const newPayment = async (req, res) => {
             const sha256 = crypto.createHash('sha256').update(string).digest('hex');
             const checksum = sha256 + '###' + keyIndex;
 
-            const prod_URL = "https://api.phonepe.com/apis/hermes/pg/v1/pay";
+            const prod_URL = "https://boarderbase.com/apis/hermes/pg/v1/pay";
             const options = {
                 method: 'POST',
                 url: prod_URL,
@@ -409,12 +409,18 @@ const newPayment = async (req, res) => {
             };
             await Payment.create(paymentData);
 
+         
+
+            
+
             // Return success response with URL
             return res.status(200).send({
                 url: response.data?.data?.instrumentResponse?.redirectInfo?.url,
                 success: true,
                 transactionId: transactionId // Return transactionId in the response
             });
+            
+            
         }
     } catch (error) {
         console.error(error);
@@ -437,7 +443,7 @@ const checkStatus = async (req, res) => {
 
         const options = {
             method: 'GET',
-            url: `https://api.phonepe.com/apis/hermes/pg/v1/status/${merchantId}/${merchantTransactionId}`,
+            url: `https://boarderbase.com/apis/hermes/pg/v1/status/${merchantId}/${merchantTransactionId}`,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',

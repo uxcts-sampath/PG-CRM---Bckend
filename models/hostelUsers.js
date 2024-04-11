@@ -25,7 +25,12 @@ const hostelUserSchema = new mongoose.Schema({
     
     billingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'], required: true },
     billingDate: { type: Date },
-    amount: { type: Number } // Auto-generated amount based on selected options
+    paymentType: { type: String, enum: ['advance', 'fullPayment'], required: true },
+    amount: { type: Number },
+    billingAmount: { type: Number },
+    endDate: { type: Date },
+    userReferenceId: { type: Number } // Add userReferenceId field
+
 });
 
 const HostelUser = mongoose.model('HostelUser', hostelUserSchema);
