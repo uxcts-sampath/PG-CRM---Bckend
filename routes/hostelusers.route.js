@@ -3,7 +3,8 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { getAllHostelUsers, createHostelUser, getHostelUserById, updateHostelUserById, deleteHostelUserById, getAllStudentHostelUsers,
   getAllWorkingEmployeeHostelUsers,
-  getAllGuestHostelUsers,processPayment,renderCreateFormWithAvailableBeds} = require('../controllers/hostelUsers.controller');
+  getAllGuestHostelUsers,processPayment,getPaymentDetails,renderCreateFormWithAvailableBeds} = require('../controllers/hostelUsers.controller');
+
 
 // Middleware function to verify JWT token and attach userId to the request object
 const verifyToken = (req, res, next) => {
@@ -11,7 +12,6 @@ const verifyToken = (req, res, next) => {
   if (!token) {
     return res.status(401).json({ success: false, message: 'Token is required' }); 
   }
-
   try { 
     const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET); 
     req.userId = decoded.id; // Attach userId to the request object
@@ -43,6 +43,10 @@ router.get('/guests', verifyToken, (req, res) => getAllGuestHostelUsers(req, res
 
 router.post('/process-payment',verifyToken, processPayment);
 
+// Add a new GET endpoint to retrieve payment details for a hostel user
+router.get('/paymentdetails/:userReferenceId', verifyToken, getPaymentDetails);
+
 
 
 module.exports = router;
+ 

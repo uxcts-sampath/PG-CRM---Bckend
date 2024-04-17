@@ -36,10 +36,100 @@ const calculateEndDate = (billingCycle, billingDate) => {
 };
 
 
+
+
+
+
+
+
+const createHostelUser = async (req, res) => {
+    try {
+        const { floor, room, bed, paymentType, amount, billingCycle, billingDate, billingAmount, ...userData } = req.body;
+        const userId = req.userId;
+
+        // Convert billingAmount to a number
+        const parsedBillingAmount = parseFloat(billingAmount);
+
+        // Generate a random 5-digit number for user reference ID
+        const userReferenceId = generateRandomUserReferenceId();
+
+        // Calculate pending amount
+        const pendingAmount = amount - parsedBillingAmount;
+
+        // Convert floor and room IDs to ObjectId
+        const floorId = new ObjectId(floor);
+        const roomId = new ObjectId(room);
+
+        // Find the room in the database
+        const foundRoom = await Room.findById(roomId);
+        if (!foundRoom) {
+            return res.status(404).json({ message: 'Room not found' });
+        }
+
+        // Check if the bed is available
+        const isBedAvailable = foundRoom.beds.some(b => b.bedNumber === bed && b.status === 'available');
+        if (!isBedAvailable) {
+            return res.status(400).json({ message: 'Bed not available' });
+        }
+
+        // Update bed status to 'occupied' only if creation is successful
+        foundRoom.beds.find(b => b.bedNumber === bed).status = 'occupied';
+
+        // Calculate end date based on billing cycle and billing date
+        const endDate = calculateEndDate(billingCycle, billingDate);
+
+        // Create payment history object
+        const initialPayment = {
+            billingDate,
+            billingAmount: parsedBillingAmount,
+            amountPaid: parsedBillingAmount, // Assuming full payment initially
+            paymentStatus: 'paid', // Assuming full payment initially
+            pendingAmount // Include pending amount
+        };
+
+        // Creating new hostel user...
+        const hostelUser = new HostelUser({
+            ...userData,
+            userId,
+            floor: floorId,
+            room: roomId,
+            bed,
+            paymentType,
+            amount,
+            billingCycle,
+            billingDate,
+            endDate, // Add the end date to the user object
+            userReferenceId,
+            pendingAmount,
+            paymentHistory: [initialPayment] // Add initial payment to payment history
+        });
+
+        // Save the hostel user to the database
+        await hostelUser.save();
+
+        // If hostel user creation is successful, send status 201 and update bed status
+        res.status(201).json({ ...hostelUser.toJSON(), endDate, userReferenceId,pendingAmount }); // Include user reference ID in the response
+
+        // Save the updated room with the occupied bed status
+        await foundRoom.save();
+    } catch (error) {
+        console.error('Error creating hostel user:', error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
+
+
+
+
+
 // const createHostelUser = async (req, res) => {
 //     try {
 //         const { floor, room, bed, paymentType, amount, billingCycle, billingDate, ...userData } = req.body;
 //         const userId = req.userId;
+
+//         // Generate a random 5-digit number for user reference ID
+//         const userReferenceId = generateRandomUserReferenceId();
 
 //         // Convert floor and room IDs to ObjectId
 //         const floorId = new ObjectId(floor);
@@ -74,14 +164,16 @@ const calculateEndDate = (billingCycle, billingDate) => {
 //             amount,
 //             billingCycle,
 //             billingDate,
-//             endDate // Add the end date to the user object
+//             endDate, // Add the end date to the user object
+//             userReferenceId,
+//             paymentHistory: [{ paymentType, amount, billingCycle, billingDate }] // Add initial payment to paymentHistory
 //         });
 
 //         // Save the hostel user to the database
 //         await hostelUser.save();
 
 //         // If hostel user creation is successful, send status 201 and update bed status
-//         res.status(201).json({ ...hostelUser.toJSON(), endDate });
+//         res.status(201).json({ ...hostelUser.toJSON(), endDate, userReferenceId }); // Include user reference ID in the response
 
 //         // Save the updated room with the occupied bed status
 //         await foundRoom.save();
@@ -92,67 +184,6 @@ const calculateEndDate = (billingCycle, billingDate) => {
 // };
 
 
-const createHostelUser = async (req, res) => {
-    try {
-        const { floor, room, bed, paymentType, amount, billingCycle, billingDate, ...userData } = req.body;
-        const userId = req.userId;
-
-        // Generate a random 5-digit number for user reference ID
-        const userReferenceId = generateRandomUserReferenceId();
-        console.log('Generated user reference ID:', userReferenceId);
-
-        // Convert floor and room IDs to ObjectId
-        const floorId = new ObjectId(floor);
-        const roomId = new ObjectId(room);
-
-        // Find the room in the database
-        const foundRoom = await Room.findById(roomId);
-        if (!foundRoom) {
-            return res.status(404).json({ message: 'Room not found' });
-        }
-
-        // Check if the bed is available
-        const isBedAvailable = foundRoom.beds.some(b => b.bedNumber === bed && b.status === 'available');
-        if (!isBedAvailable) {
-            return res.status(400).json({ message: 'Bed not available' });
-        }
-
-        // Update bed status to 'occupied' only if creation is successful
-        foundRoom.beds.find(b => b.bedNumber === bed).status = 'occupied';
-
-        // Calculate end date based on billing cycle and billing date
-        const endDate = calculateEndDate(billingCycle, billingDate);
-
-        // Creating new hostel user...
-        const hostelUser = new HostelUser({
-            ...userData,
-            userId,
-            floor: floorId,
-            room: roomId,
-            bed,
-            paymentType,
-            amount,
-            billingCycle,
-            billingDate,
-            endDate, // Add the end date to the user object
-            userReferenceId // Add the generated user reference ID to the user object
-        });
-
-        console.log('Hostel user before saving:', hostelUser); // Log the hostel user before saving
-
-        // Save the hostel user to the database
-        await hostelUser.save();
-
-        // If hostel user creation is successful, send status 201 and update bed status
-        res.status(201).json({ ...hostelUser.toJSON(), endDate, userReferenceId }); // Include user reference ID in the response
-
-        // Save the updated room with the occupied bed status
-        await foundRoom.save();
-    } catch (error) {
-        console.error('Error creating hostel user:', error);
-        res.status(400).json({ message: error.message });
-    }
-};
 
 // Function to generate random 5-digit user reference ID
 const generateRandomUserReferenceId = () => {
@@ -335,8 +366,6 @@ const getHostelUserById = async (req, res) => {
 
 const updateHostelUserById = async (req, res, userId, id) => {
     try {
-        console.log('Received PUT request to update user with ID:', id);
-        console.log('Request body:', req.body);
 
         const { bed: newBedNumber, floor: newFloorId, room: newRoomId, ...userData } = req.body;
 
@@ -368,7 +397,7 @@ const updateHostelUserById = async (req, res, userId, id) => {
         Object.assign(hostelUser, userData);
 
         const updatedUser = await hostelUser.save();
-        console.log('User updated successfully:', updatedUser);
+        // console.log('User updated successfully:', updatedUser);
 
         res.status(200).json({ success: true, message: 'User updated successfully', hostelUser: updatedUser });
     } catch (error) {
@@ -488,7 +517,7 @@ const renderCreateFormWithAvailableBeds = async (req, res) => {
 
 const processPayment = async (req, res) => {
     try {
-        const { userReferenceId, ...paymentDetails } = req.body;
+        const { userReferenceId, paymentDetails } = req.body;
 
         // Find the hostel user by userReferenceId
         const hostelUser = await HostelUser.findOne({ userReferenceId });
@@ -496,28 +525,31 @@ const processPayment = async (req, res) => {
             return res.status(404).json({ message: 'Hostel user not found' });
         }
 
+        // Add the current payment details to paymentHistory
+        hostelUser.paymentHistory.push(paymentDetails);
+
         // Update payment details
         hostelUser.paymentDetails = paymentDetails;
+        hostelUser.billingCycle = paymentDetails.billingCycle;
+        hostelUser.billingDate = paymentDetails.billingDate;
+        hostelUser.paymentType = paymentDetails.paymentType;
+        hostelUser.amount = paymentDetails.amount;
+        hostelUser.billingAmount = paymentDetails.billingAmount;
+
+        // Calculate and update endDate based on billing cycle and billing date
+        hostelUser.endDate = calculateEndDate(paymentDetails.billingCycle, paymentDetails.billingDate);
 
         // If payment status is 'paid', update billing details for next cycle
         if (paymentDetails.paymentStatus === 'paid') {
-            // Update billing cycle and calculate new end date
-            const { billingCycle, billingDate } = hostelUser;
-            const newEndDate = calculateEndDate(billingCycle, billingDate);
-            hostelUser.endDate = newEndDate;
-
-            // Example: update next billing amount based on billing cycle
-            if (billingCycle === 'monthly') {
-                hostelUser.billingAmount = hostelUser.amount; // Assuming the same amount for the next month
-            } else if (billingCycle === 'quarterly') {
-                hostelUser.billingAmount = hostelUser.amount * 3; // Assuming quarterly billing
-            } else if (billingCycle === 'yearly') {
-                hostelUser.billingAmount = hostelUser.amount * 12; // Assuming yearly billing
+            // Update billing amount for the next month if the current billing cycle is monthly
+            if (hostelUser.billingCycle === 'monthly') {
+                hostelUser.amount = calculateNextMonthBillingAmount(hostelUser.amount);
             }
         }
         
         // Save the updated hostel user
         await hostelUser.save();
+        // console.log('Updated hostel user:', hostelUser);
 
         // Respond with success message
         res.status(200).json({ message: 'Payment processed successfully' });
@@ -526,6 +558,37 @@ const processPayment = async (req, res) => {
         res.status(500).json({ message: 'Payment processing failed' });
     }
 };
+
+
+
+const calculateNextMonthBillingAmount = (currentAmount) => {
+    // Implement your logic here (e.g., increase by a certain percentage)
+    return currentAmount; // For simplicity, assuming the same amount for the next month
+};
+
+const getPaymentDetails = async (req, res) => {
+    try {
+        const userReferenceId = req.params.userReferenceId;
+
+        // Find the hostel user by userReferenceId
+        const hostelUser = await HostelUser.findOne({ userReferenceId });
+        if (!hostelUser) {
+            return res.status(404).json({ message: 'Hostel user not found' });
+        }
+
+        // Respond with the entire hostel user document
+        res.status(200).json(hostelUser);
+    } catch (error) {
+        console.error('Error fetching hostel user details:', error);
+        res.status(500).json({ message: 'Failed to fetch hostel user details' });
+    }
+};
+
+   
+
+
+
+
 
 
 
@@ -544,5 +607,6 @@ module.exports = {
     getAvailableBeds,
     renderCreateFormWithAvailableBeds,
     assignBed,
-    processPayment
+    processPayment,
+    getPaymentDetails
 };
