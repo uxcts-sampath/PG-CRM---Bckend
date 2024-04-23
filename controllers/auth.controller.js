@@ -118,6 +118,14 @@ const signin = async (req, res, next) => {
             throw errorHandler(404, 'User not found');
         }
 
+        const isPasswordValid = await bcrypt.compare(password, validUser.password);
+
+                // If password is invalid, return error
+                if (!isPasswordValid) {
+                    throw errorHandler(401, 'Invalid password');
+                }
+
+
         const today = new Date(); // Define today's date
         
         // Retrieve payment information for the user
@@ -185,6 +193,7 @@ const signin = async (req, res, next) => {
         // Set tokens in the response header and send response
         res.setHeader('Authorization', `Bearer ${token}`);
         res.status(200).json(responseData);
+
     } catch (error) {
         next(error);
     }
