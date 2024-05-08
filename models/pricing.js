@@ -7,4 +7,4 @@ const pricingSchema = new mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('Pricing', pricingSchema);
+module.exports = mongoose.model('Pricing', pricingSchema); 

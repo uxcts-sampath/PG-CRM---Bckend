@@ -3,15 +3,13 @@ const mongoose = require('mongoose');
 
 const paymentHistorySchema = new mongoose.Schema({
     billingDate: { type: Date, required: true },
-    payableAmount: { type: Number},
-    amountPaid: { type: Number },
-    paymentStatus: { type: String, required: true },
-    pendingAmount:{type:Number},
-    customAmount:{ type: Number },
+    payment:{type:String,enum:['cash','online'],required:true},
+    outstanding:{type:Number},
     subTotal:{ type: Number },
-    total:{type:Number}
-
-    // You can add more fields as needed
+    customAmount:{ type: Number },
+    total:{type:Number},
+    amountPaid: { type: Number },
+    // pendingAmount:{type:Number}
 });
 
 const hostelUserSchema = new mongoose.Schema({
@@ -22,7 +20,7 @@ const hostelUserSchema = new mongoose.Schema({
     age: { type: Number, required: true },
     fatherName: { type: String, required: true },
     parentPhoneNumber:{type:Number,required:true},
-    parentEmail:{type:String,required:true},
+    parentEmail:{type:String},
     referredBy: { type: String },
     aadharNumber: { type: String, required: true },
     purposeFor: { type: String }, 
@@ -39,7 +37,7 @@ const hostelUserSchema = new mongoose.Schema({
     bed: { type: Number },
     billingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'], required: true },
     billingDate: { type: Date },
-    paymentType: { type: String, enum: ['advance', 'fullPayment','pendingAmount'], required: true },
+    paymentType: { type: String, enum: ['advance', 'fullPayment'], required: true },
     amount: { type: Number },
     billingAmount: { type: Number },
     endDate: { type: Date },
@@ -48,4 +46,4 @@ const hostelUserSchema = new mongoose.Schema({
 });
 
 const HostelUser = mongoose.model('HostelUser', hostelUserSchema);
-module.exports = HostelUser;
+module.exports = HostelUser; 

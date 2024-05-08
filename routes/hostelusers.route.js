@@ -41,7 +41,7 @@ router.get('/guests', verifyToken, (req, res) => getAllGuestHostelUsers(req, res
 
 // router.get('/create', verifyToken, renderCreateFormWithAvailableBeds);
 
-router.post('/process-payment',verifyToken, processPayment);
+router.post('/processPayment',verifyToken, processPayment);
 
 // Add a new GET endpoint to retrieve payment details for a hostel user
 router.get('/paymentdetails/:userReferenceId', verifyToken, getPaymentDetails);

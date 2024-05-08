@@ -3,6 +3,8 @@ const axios = require('axios');
 const Payment =require('../models/payment')
 const User = require('../models/user')
 require('dotenv').config();
+const https = require('https');
+
 
 // const newPayment = async (req, res) => { 
 //     try {
@@ -381,7 +383,8 @@ const newPayment = async (req, res) => {
                 },
                 data: {
                     request: payloadMain
-                }
+                },
+                httpsAgent: new https.Agent({ rejectUnauthorized: false })
             };
 
             const response = await axios.request(options);
@@ -455,10 +458,10 @@ const checkStatus = async (req, res) => {
         const response = await axios.request(options);
         console.log(response.data);
         if (response.data.success === true) {
-            const url = `http://localhost:3000/success`;
+            const url = `http://boarderbase.com/success`;
             return res.redirect(url);
         } else {
-            const url = `http://localhost:3000/failure`;
+            const url = `http://boarderbase.com/failure`;
             return res.redirect(url);
         }
     } catch (error) {
@@ -482,8 +485,16 @@ const getPaymentDetails = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Payment not found' });
         }
 
-        // Log payment details (Avoid logging sensitive information)
-        console.log('Payment Details:', payment);
+        // Format date fields to only display date part
+        const formattedPayment = {
+            ...payment.toObject(), // Convert Mongoose document to plain JavaScript object
+            selectedDate: payment.selectedDate.toISOString().split('T')[0], // Format selectedDate
+            suspensionDate: payment.suspensionDate.toISOString().split('T')[0], // Format suspensionDate
+            fromDate: payment.fromDate.toISOString().split('T')[0], // Format fromDate
+            toDate: payment.toDate.toISOString().split('T')[0], // Format toDate
+            nextPlanDate: payment.nextPlanDate.toISOString().split('T')[0] // Format nextPlanDate
+        };
+
 
         // Determine if payment was successful based on userId
         const paymentSuccessful = !!payment.userId; // Assuming userId indicates success
@@ -494,7 +505,7 @@ const getPaymentDetails = async (req, res) => {
         }
 
         // Return payment details in the response
-        return res.status(200).json({ success: true, data: payment, paymentSuccessful });
+        return res.status(200).json({ success: true, data: formattedPayment, paymentSuccessful });
     } catch (error) {
         console.error(error);
 
@@ -507,6 +518,7 @@ const getPaymentDetails = async (req, res) => {
         return res.status(500).json({ success: false, message: errorMessage });
     }
 };
+
 
 
 
