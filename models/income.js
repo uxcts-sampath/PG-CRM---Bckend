@@ -1,16 +1,24 @@
-// incomeRecord.js
-
 const mongoose = require('mongoose');
 
-const incomeRecordSchema = new mongoose.Schema({
-    totalIncome: {
+const paymentSchema = new mongoose.Schema({
+    amountPaid: {
         type: Number,
         required: true
     },
-    createdAt: {
+    datePaid: {
         type: Date,
-        default: Date.now
+        required: true
     }
 });
 
-const IncomeRecord = mongoose.model('IncomeRecord', incomeRecordSchema);
+const hostelUserSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    paymentHistory: [paymentSchema]
+});
+
+const HostelUser = mongoose.model('HostelUser', hostelUserSchema);
+
+module.exports = HostelUser;

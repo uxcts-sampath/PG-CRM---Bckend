@@ -1,33 +1,26 @@
-const HostelUser = require('../models/hostelUsers'); // Ensure the model is correctly imported
+const HostelUser = require('../models/hostelUsers');
 
 const calculateTotalIncome = async () => {
     try {
-        // Find all hostel users
-        const hostelUsers = await HostelUser.find();
+        const result = await HostelUser.aggregate([
+            { $unwind: '$paymentHistory' },
+            { $group: { _id: null, totalIncome: { $sum: '$paymentHistory.amountPaid' } } }
+        ]);
 
-        // Calculate total income from hostel user payment history
-        let totalIncome = 0;
-        hostelUsers.forEach(user => {
-            user.paymentHistory.forEach(payment => {
-                // Access the correct field based on your schema
-                totalIncome += payment.amountPaid;
-            });
-        });
-
-        console.log("Total Income Calculated:", totalIncome); // Log to check the total income computed
+        console.log("Aggregation Result:", result);
+        const totalIncome = result.length > 0 ? result[0].totalIncome : 0;
+        console.log("Total Income Calculated using Aggregation:", totalIncome);
         return totalIncome;
     } catch (error) {
-        console.error('Error calculating total income:', error);
+        console.error('Error calculating total income using aggregation:', error);
         throw new Error('Failed to calculate total income');
     }
 };
 
+
 const getIncomeRecords = async (req, res) => {
     try {
-        // Calculate total income
         const totalIncome = await calculateTotalIncome();
-
-        // Respond with total income
         res.status(200).json({ totalIncome });
     } catch (error) {
         console.error('Error fetching income records:', error);
