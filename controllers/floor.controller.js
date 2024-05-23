@@ -26,6 +26,7 @@ const pgfloor = async (req, res) => {
     }
 };
 
+
 const getAllFloors = async (req, res) => {
     try {
         const userId = req.user.id; // Extracted from JWT token
@@ -56,6 +57,7 @@ const getAllFloors = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 const deleteFloor = async (req, res) => {
     const userId = req.userId; // Extracted from JWT token

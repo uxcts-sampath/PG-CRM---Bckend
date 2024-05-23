@@ -32,7 +32,7 @@ const hostelUserSchema = new mongoose.Schema({
     profilePhoto: { type: String },
     referenceMobile: { type: String },
     requireRoomType: { type: String, enum: ['shared', 'single'], required: true },
-    floor: { type: mongoose.Schema.Types.ObjectId, ref: 'Floor' },
+    // floor: { type: mongoose.Schema.Types.ObjectId, ref: 'Floor' },
     room: { type: mongoose.Schema.Types.ObjectId, ref: 'Room' },
     bed: { type: Number },
     billingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'], required: true },

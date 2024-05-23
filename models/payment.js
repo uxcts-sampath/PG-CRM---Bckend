@@ -46,7 +46,7 @@ const paymentSchema = new mongoose.Schema({
     },
     userSize: {
         type: String,
-        enum: ['1-250', '251-500+'],
+        // enum: ['1-250', '251-500+'],
         required: true
     }
 });

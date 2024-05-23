@@ -7,7 +7,7 @@ const createStaff = async (req, res) => {
         const { userId } = req;
         const staffData = { ...req.body, userId };
 
-        const newStaff = new HostelStaff(staffData);
+        const newStaff = new HostelStaff(staffData); 
         const savedStaff = await newStaff.save();
 
         res.status(201).json(savedStaff);
@@ -35,7 +35,7 @@ const editStaff = async (req, res) => {
 
 // Delete Staff
 const deleteStaff = async (req, res) => {
-    try {
+    try { 
         const { id } = req.params;
         const deletedStaff = await HostelStaff.findByIdAndDelete(id);
 

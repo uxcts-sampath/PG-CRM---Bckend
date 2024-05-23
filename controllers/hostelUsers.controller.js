@@ -50,7 +50,7 @@
             const userId = req.userId;
             const parsedBillingAmount = parseFloat(billingAmount);
             const userReferenceId = generateRandomUserReferenceId();
-            const floorId = new ObjectId(floor);
+            // const floorId = new ObjectId(floor);
             const roomId = new ObjectId(room);
             const foundRoom = await Room.findById(roomId);
             if (!foundRoom) {
@@ -88,7 +88,7 @@
             const hostelUser = new HostelUser({
                 ...userData,
                 userId,
-                floor: floorId,
+                // floor: floorId,
                 room: roomId,
                 bed,
                 paymentType,
@@ -175,7 +175,6 @@
             }));
             res.status(200).json(hostelUsers);
 
-            console.log(hostelUsers)
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
@@ -337,49 +336,7 @@
     
     
 
-    // const processPayment = async (req, res) => {
-    //     try {
-    //         const { userReferenceId, paymentDetails } = req.body;
-    
-    //         if (isNaN(paymentDetails.subTotal) || isNaN(paymentDetails.total)) {
-    //             return res.status(400).json({ success: false, message: 'Invalid payment details' });
-    //         }
-    
-    //         const hostelUser = await HostelUser.findOne({ userReferenceId });
-    //         if (!hostelUser) {
-    //             return res.status(404).json({ message: 'Hostel user not found' });
-    //         }
-    
-    //         let newEndDate = hostelUser.endDate; // Initialize newEndDate with the existing endDate
-    
-    //         // Check if billingDate is greater than endDate
-    //         const billingDate = new Date(paymentDetails.billingDate);
-    //         if (billingDate > hostelUser.endDate) {
-    //             newEndDate = calculateEndDate(hostelUser.billingCycle, billingDate); // Generate new endDate
-    //         }
-    
-    //         const outstanding = calculateOutstanding(hostelUser, paymentDetails);
-    
-    //         hostelUser.paymentHistory.push({
-    //             billingDate: paymentDetails.billingDate,
-    //             payment: paymentDetails.payment,
-    //             outstanding: outstanding,
-    //             subTotal: paymentDetails.subTotal,
-    //             customAmount: paymentDetails.customAmount,
-    //             total: paymentDetails.total,
-    //         });
-    
-    //         hostelUser.endDate = newEndDate; // Update the endDate
-    
-    //         await hostelUser.save();
-    //         return res.status(200).json({ success: true, message: 'Payment processed successfully', data: hostelUser });
-    //     } catch (error) {
-    //         console.error('Error processing payment:', error);
-    //         res.status(500).json({ message: 'Payment processing failed' });
-    //     }
-    // };
-    
-
+   
 
     const processPayment = async (req, res) => {
         try {
@@ -405,15 +362,18 @@
                 hostelUser.payableAmount = payableAmount;
             }
     
+            const amountPaid = paymentDetails.subTotal - paymentDetails.customAmount;
+    
             const outstanding = calculateOutstanding(hostelUser, paymentDetails);
     
-            hostelUser.paymentHistory.push({ 
+            hostelUser.paymentHistory.push({
                 billingDate: paymentDetails.billingDate,
                 payment: paymentDetails.payment,
                 outstanding: outstanding,
                 subTotal: paymentDetails.subTotal,
-                customAmount: paymentDetails.customAmount,
+                customAmount: amountPaid, // Update customAmount to amountPaid
                 total: paymentDetails.total,
+                amountPaid: amountPaid
             });
     
             hostelUser.endDate = newEndDate; // Update the endDate
@@ -429,6 +389,7 @@
     
     
     
+    
 
 
 
@@ -437,7 +398,7 @@
         const outstanding = paymentDetails.subTotal - paymentDetails.customAmount;
         return outstanding;
     };
-
+ 
 
 
 
