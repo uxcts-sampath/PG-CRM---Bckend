@@ -1,20 +1,49 @@
 const HostelStaff = require('../models/hostelStaff');
 
 // Create Staff
+// const createStaff = async (req, res) => {
+//     try {
+//         // Extract necessary fields from the request body
+//         const { userId } = req;
+//         const staffData = { ...req.body, userId };
+
+//         const newStaff = new HostelStaff(staffData); 
+//         const savedStaff = await newStaff.save();
+
+//         res.status(201).json(savedStaff);
+//     } catch (error) {
+//         res.status(400).json({ message: error.message });
+//     }
+// };
+
+
+
 const createStaff = async (req, res) => {
     try {
-        // Extract necessary fields from the request body
         const { userId } = req;
-        const staffData = { ...req.body, userId };
+        const staffData = { ...req.body, userId, status: 'pending' };
 
         const newStaff = new HostelStaff(staffData); 
         const savedStaff = await newStaff.save();
+
+        console.log('Saved Staff:', savedStaff);
 
         res.status(201).json(savedStaff);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 };
+
+const updateStaffStatus = async (staffId, status) => {
+    try {
+        const staff = await HostelStaff.findByIdAndUpdate(staffId, { status }, { new: true });
+        return staff;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+
 
 // Edit Staff
 const editStaff = async (req, res) => {
@@ -83,5 +112,6 @@ module.exports = {
     editStaff,
     deleteStaff,
     getAllStaff,
-    getStaffById
+    getStaffById,
+    updateStaffStatus
 };

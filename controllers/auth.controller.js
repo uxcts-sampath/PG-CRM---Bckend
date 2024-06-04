@@ -55,58 +55,6 @@ const signup = async (req, res, next) => {
 };
 
 
-// const signin = async (req, res, next) => {
-//     try {
-//         const { email, password } = req.body;
-//         const validUser = await User.findOne({ email });
-//         if (!validUser) {
-//             throw errorHandler(404, 'User not found');
-//         }
-//         const validPassword = bcrypt.compareSync(password, validUser.password);
-//         if (!validPassword) {
-//             throw errorHandler(401, 'Wrong Credentials');
-//         }
-        
-//         // Check if the user has a membership
-//         const hasMembership = await Membership.findOne({ userId: validUser._id });
-
-//         // Generate token and refreshToken
-//         const token = jwt.sign({ id: validUser._id }, jwtSecret, { expiresIn: '1d' });
-//         const refreshToken = jwt.sign({ id: validUser._id }, jwtSecret, { expiresIn: '1d' });
-
-//         // If the user doesn't have a membership, set a flag to indicate that a membership plan needs to be selected
-//         const responseData = {
-//             token: token,
-//             refreshToken: refreshToken,
-//             user: { 
-//                 id: validUser._id,
-//                 fullName: validUser.fullName,
-//                 hostelName: validUser.hostelName,
-//                 email: validUser.email,
-//                 aadharNumber: validUser.aadharNumber,
-//                 dateOfBirth: validUser.dateOfBirth,
-//                 phoneNumber: validUser.phoneNumber,
-//                 address: validUser.address,
-//                 country: validUser.country,
-//                 state: validUser.state,
-//                 city: validUser.city,
-//                 userSize: validUser.userSize,
-//                 hasMembership: !!hasMembership // Convert to boolean
-//             }
-//         };
-
-//         // If the user doesn't have a membership, send a flag indicating that the user needs to select a membership plan
-//         if (!hasMembership) {
-//             responseData.selectMembershipPlan = true;
-//         }
-
-//         res.setHeader('Authorization', `Bearer ${token}`);
-//         res.status(200).json(responseData);
-      
-//     } catch (error) {
-//         next(error);
-//     }
-// };
 
 
 const signin = async (req, res, next) => {

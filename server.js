@@ -14,7 +14,9 @@ const paymentRoutes = require('./routes/payment.route');
 const hostelMembershipRoute = require('./routes/hostel_membership.route');
 const PriceRoute = require ("./routes/price.route")
 const Income = require ('./routes/income.route')
-
+const Expenses = require('./routes/expenses.route')
+const Salary = require('./routes/salary.route')
+const paymentPlan = require('./routes/paymentPlan.route')
 
 
 mongoose.connect(process.env.MONGO_URI)
@@ -47,6 +49,9 @@ app.use('/api', paymentRoutes);
 app.use('/api', hostelMembershipRoute)
 app.use('/api', PriceRoute)
 app.use('/api',Income)
+app.use('/api', Expenses)
+app.use('/api', Salary)
+app.use('/api',paymentPlan)
 
 
 app.use((err, req, res, next) => {

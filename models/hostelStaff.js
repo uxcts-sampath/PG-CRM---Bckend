@@ -38,7 +38,13 @@ const hostelStaffSchema = new mongoose.Schema({
     referenceMobile: { type: String },
     billingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'], required: true },
     billingDate: { type: Date },
-    amount: { type: Number } // Auto-generated amount based on selected options
+    amount: { type: Number } ,
+    status: {
+      type: String,
+      required: true,
+      default: 'pending'
+  },
+  nextBillingDate:{type:Date}
 });
 
 const HostelStaff = mongoose.model('HostelStaff', hostelStaffSchema);
