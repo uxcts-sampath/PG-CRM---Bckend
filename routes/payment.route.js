@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { newPayment, checkStatus,getPaymentDetails } = require('../controllers/paymentController');
+const { newPayment, checkStatus,getPaymentDetails, getUserPaymentStatus } = require('../controllers/paymentController');
 
 // Middleware function to verify JWT token and attach userId to the request object
 const verifyToken = (req, res, next) => {
@@ -28,5 +28,7 @@ router.post('/payment', verifyToken, newPayment);
 router.post('/status/:txnId', verifyToken, checkStatus);
 
 router.get('/payment/:userId', verifyToken, getPaymentDetails);
+
+router.get('/active/status', verifyToken, getUserPaymentStatus);
 
 module.exports = router;

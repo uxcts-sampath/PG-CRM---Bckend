@@ -49,6 +49,9 @@ const paymentSchema = new mongoose.Schema({
         // enum: ['1-250', '251-500+'],
         required: true
     }
+}, {
+    timestamps: true,
+    strict: true
 });
 
 const Payment = mongoose.model('Payment', paymentSchema);

@@ -255,7 +255,30 @@ const getPaymentDetails = async (req, res) => {
     }
 };
 
+const getUserPaymentStatus = async (req, res) => {
+    const userId = req.userId;
 
+    try {
+      const paymentRecord = await Payment.findOne({ userId: userId }).sort({ createdAt: -1 });
+  
+      if (paymentRecord) {
+        let suspensionDate = new Date(paymentRecord.suspensionDate);
+        let suspensionDateMilliseconds = suspensionDate.getTime();
+        let presentMilliseconds = Date.now();
+
+        if (presentMilliseconds > suspensionDateMilliseconds){
+            return res.status(200).json({ hasActivePlan: false });
+        } else {
+            return res.status(200).json({ hasActivePlan: true });
+        }
+      } else {
+        return res.status(200).json({ hasActivePlan: false });
+      }
+    } catch (error) {
+      console.error('Error in getUserPaymentPlan:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
 
 
 
@@ -263,7 +286,8 @@ const getPaymentDetails = async (req, res) => {
 module.exports = {
     newPayment,
     checkStatus,
-    getPaymentDetails
+    getPaymentDetails,
+    getUserPaymentStatus
 };
 
 

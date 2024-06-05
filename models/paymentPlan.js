@@ -6,6 +6,9 @@ const paymentPlanSchema = new mongoose.Schema({
   paymentPlan: { type: String, required: true },
   amount: { type: Number, required: true },
   transactionId: { type: String, required: true },
+}, {
+  timestamps: true,
+  strict: true
 });
 
 const PaymentPlan = mongoose.model('PaymentPlan', paymentPlanSchema);
