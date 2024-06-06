@@ -95,7 +95,7 @@ const newPayment = async (req, res) => {
                 merchantUserId: merchantUserId,
                 amount: amount * 100,
                 redirectUrl: `${process.env.REDIRECT_URL}/${process.env.MERCHANT_ID}/${merchantTransactionId}`,
-                redirectMode: 'POST',
+                redirectMode: 'REDIRECT',
                 mobileNumber: req.body.number,
                 paymentInstrument: { 
                     type: 'PAY_PAGE'
@@ -200,8 +200,13 @@ const checkStatus = async (req, res) => {
         const response = await axios.request(options);
         console.log(response.data);
         if (response.data.success === true) {
-            await Payment.findOneAndUpdate({ transactionId: merchantTransactionId }, { payment_status: "paid" });
-            return res.status(200).send("Payment Success");
+            if (response.data.code === "PAYMENT_PENDING"){
+                await Payment.findOneAndUpdate({ transactionId: merchantTransactionId }, { payment_status: "pending" });
+                return res.status(400).send("Payment Pending");
+            } else if (response.data.code === "PAYMENT_SUCCESS"){
+                await Payment.findOneAndUpdate({ transactionId: merchantTransactionId }, { payment_status: "paid" });
+                return res.status(200).send("Payment Success");
+            }
             // const url = `http://boarderbase.com/success`;
             // return res.redirect(url);
         } else {
