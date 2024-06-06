@@ -72,7 +72,8 @@ const newPayment = async (req, res) => {
                                 nextPlanDate: nextPlanDate, // Set next plan date as current date for free plan
                                 subtotal: 0, // Set subtotal as 0 for free plan
                                 total: 0, // Set total as 0 for free plan
-                                userSize: userSize
+                                userSize: userSize,
+                                payment_status: "paid"
                             };
                             // Save payment data to the database
                             await Payment.create(paymentData);
@@ -84,7 +85,7 @@ const newPayment = async (req, res) => {
 
                             
         } else {
-           const merchantTransactionId = Date.now() + Math.random().toString(36).substring(2, 15);
+            const merchantTransactionId = Date.now() + Math.random().toString(36).substring(2, 15);
             const merchantUserId = userId + Date.now(); // Example: Generating merchantUserId with timestamp
 
             const data = {
@@ -93,7 +94,7 @@ const newPayment = async (req, res) => {
                 name: req.body.name,
                 merchantUserId: merchantUserId,
                 amount: amount * 100,
-                redirectUrl: `https://boarderbase.com/${process.env.MERCHANT_ID}/${merchantTransactionId}`,
+                redirectUrl: `${process.env.REDIRECT_URL}/${process.env.MERCHANT_ID}/${merchantTransactionId}`,
                 redirectMode: 'POST',
                 mobileNumber: req.body.number,
                 paymentInstrument: { 
@@ -144,7 +145,8 @@ const newPayment = async (req, res) => {
                 nextPlanDate: nextPlanDate, 
                 subtotal: amount, 
                 total: amount, 
-                userSize: userSize
+                userSize: userSize,
+                payment_status: "pending"
             };
             await Payment.create(paymentData);
 
@@ -172,33 +174,41 @@ const newPayment = async (req, res) => {
 
 const checkStatus = async (req, res) => {
     try {
-        const merchantTransactionId = merchantTransactionId;
+        const { merchantTransactionId } = req.body;
         const merchantId = process.env.MERCHANT_ID;
 
+        const key = process.env.SALT_KEY;
         const keyIndex = 1;
-        const string = ` apis/hermes/pg/v1/status/${merchantId}/${merchantTransactionId}` + process.env.SALT_KEY;
+        const string = `/pg/v1/status/${merchantId}/${merchantTransactionId}` + key;
         const sha256 = crypto.createHash('sha256').update(string).digest('hex');
-        const checksum = sha256 + "###" + keyIndex;
+        const checksum = sha256 + '###' + keyIndex;
+
+        const status_URL = `${process.env.STATUS_URL}/${merchantId}/${merchantTransactionId}`;
 
         const options = {
             method: 'GET',
-            url: `https://boarderbase.com/apis/hermes/pg/v1/status/${merchantId}/${merchantTransactionId}`,
+            url: status_URL,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
                 'X-VERIFY': checksum,
                 'X-MERCHANT-ID': merchantId
-            }
+            },
+            httpsAgent: new https.Agent({ rejectUnauthorized: false })
         };
 
         const response = await axios.request(options);
         console.log(response.data);
         if (response.data.success === true) {
-            const url = `http://boarderbase.com/success`;
-            return res.redirect(url);
+            await Payment.findOneAndUpdate({ transactionId: merchantTransactionId }, { payment_status: "paid" });
+            return res.status(200).send("Payment Success");
+            // const url = `http://boarderbase.com/success`;
+            // return res.redirect(url);
         } else {
-            const url = `http://boarderbase.com/failure`;
-            return res.redirect(url);
+            await Payment.findOneAndUpdate({ transactionId: merchantTransactionId }, { payment_status: "failure" });
+            return res.status(400).send("Payment Not Success");
+            // const url = `http://boarderbase.com/failure`;
+            // return res.redirect(url);
         }
     } catch (error) {
         console.error(error);
@@ -259,7 +269,7 @@ const getUserPaymentStatus = async (req, res) => {
     const userId = req.userId;
 
     try {
-        const paymentRecord = await Payment.findOne({ userId: userId }).sort({ createdAt: -1 });
+        const paymentRecord = await Payment.findOne({ userId: userId, payment_status: "paid" }).sort({ createdAt: -1 });
         const freePlan = await Payment.findOne({ userId: userId, paymentPlan: "free" });
         let hasActivePlan;
         let hasfreePlan;

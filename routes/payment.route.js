@@ -25,7 +25,7 @@ const verifyToken = (req, res, next) => {
 router.post('/payment', verifyToken, newPayment);
 
 // Route to check payment status
-router.post('/status/:txnId', verifyToken, checkStatus);
+router.post('/status', verifyToken, checkStatus);
 
 router.get('/payment/:userId', verifyToken, getPaymentDetails);
 

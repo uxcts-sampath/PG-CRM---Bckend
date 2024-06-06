@@ -35,7 +35,6 @@ const paymentSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    
     subtotal: {
         type: Number,
         required: true
@@ -48,6 +47,10 @@ const paymentSchema = new mongoose.Schema({
         type: String,
         // enum: ['1-250', '251-500+'],
         required: true
+    },
+    payment_status : {
+        type : String,
+        enum : ['pending', 'paid', 'failure']
     }
 }, {
     timestamps: true,
