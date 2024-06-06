@@ -259,21 +259,32 @@ const getUserPaymentStatus = async (req, res) => {
     const userId = req.userId;
 
     try {
-      const paymentRecord = await Payment.findOne({ userId: userId }).sort({ createdAt: -1 });
-  
-      if (paymentRecord) {
-        let suspensionDate = new Date(paymentRecord.suspensionDate);
-        let suspensionDateMilliseconds = suspensionDate.getTime();
-        let presentMilliseconds = Date.now();
+        const paymentRecord = await Payment.findOne({ userId: userId }).sort({ createdAt: -1 });
+        const freePlan = await Payment.findOne({ userId: userId, paymentPlan: "free" });
+        let hasActivePlan;
+        let hasfreePlan;
 
-        if (presentMilliseconds > suspensionDateMilliseconds){
-            return res.status(200).json({ hasActivePlan: false });
+        if (paymentRecord) {
+            let suspensionDate = new Date(paymentRecord.suspensionDate);
+            let suspensionDateMilliseconds = suspensionDate.getTime();
+            let presentMilliseconds = Date.now();
+
+            if (presentMilliseconds > suspensionDateMilliseconds) {
+                hasActivePlan = false;
+            } else {
+                hasActivePlan = true;
+            }
         } else {
-            return res.status(200).json({ hasActivePlan: true });
+            hasActivePlan = false;
         }
-      } else {
-        return res.status(200).json({ hasActivePlan: false });
-      }
+
+        if (freePlan) {
+            hasfreePlan = true;
+        } else {
+            hasfreePlan = false;
+        }
+
+        return res.status(200).json({ hasActivePlan: hasActivePlan, hasfreePlan: hasfreePlan });
     } catch (error) {
       console.error('Error in getUserPaymentPlan:', error);
       res.status(500).json({ success: false, message: 'Internal Server Error' });
