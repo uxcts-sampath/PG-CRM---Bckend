@@ -108,7 +108,7 @@ const newPayment = async (req, res) => {
             const sha256 = crypto.createHash('sha256').update(string).digest('hex');
             const checksum = sha256 + '###' + keyIndex;
 
-            const prod_URL = "https://boarderbase.com/apis/hermes/pg/v1/pay";
+            const prod_URL = process.env.PHONEPE_URL;
             const options = {
                 method: 'POST',
                 url: prod_URL,
