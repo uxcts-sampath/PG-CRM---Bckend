@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { createStaff, editStaff, deleteStaff, getAllStaff, getStaffById } = require('../controllers/hostelstaff.controller');
+const { createStaff, editStaff, deleteStaff, getAllStaff, getStaffById } = require('../controllers/hostelStaff.controller');
 
 // Middleware function to verify JWT token and attach userId to the request object
 const verifyToken = (req, res, next) => {

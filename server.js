@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose')
+let port = process.env.PORT || 3000;
 const userRoutes = require('./routes/user.route')
 const authRoutes = require('./routes/auth.route')
 
@@ -33,7 +34,7 @@ app.use(express.json());
 app.use(cors());
 
 
-app.listen(3000, () => {
+app.listen(port, () => {
     console.log(`server listening on port 3000`);
 })
 
