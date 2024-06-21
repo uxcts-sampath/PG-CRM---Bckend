@@ -1,5 +1,5 @@
 const express = require('express');
-const { signup, signin, logout, forgotpassword, resetpassword, resetPasswordPage,getUserDetails,checkEmailAvailability } = require('../controllers/auth.controller');
+const { signup, signin, logout, forgotpassword, resetpassword, resetPasswordPage,getUserDetails,checkEmailAvailability,updateUserStatus } = require('../controllers/auth.controller');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
@@ -27,5 +27,7 @@ router.post('/resetpassword', resetpassword);
 router.get('/resetpassword/:userId/:token', resetPasswordPage); 
 router.get('/user/:userId',verifyToken, getUserDetails);
 router.post('/checkEmailAvailability', checkEmailAvailability);
+router.post('/updatestatus', updateUserStatus); // Protected route for admin
+
 
 module.exports = router;

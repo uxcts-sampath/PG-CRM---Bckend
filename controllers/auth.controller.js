@@ -41,7 +41,8 @@ const signup = async (req, res, next) => {
             country,
             state,
             city,
-            userSize
+            userSize,
+            status: 'pending' // Set status to pending
         });
 
         // Save the new user to the database
@@ -64,6 +65,18 @@ const signin = async (req, res, next) => {
 
         if (!validUser) {
             throw errorHandler(404, 'User not found');
+        }
+
+        if (validUser.status === 'pending') {
+            return res.status(403).json({ message: 'Your account is pending approval.' });
+        }
+
+        if (validUser.status === 'hold') {
+            return res.status(403).json({ message: 'Your account is on hold. Please contact support.' });
+        }
+
+        if (validUser.status === 'suspended') {
+            return res.status(403).json({ message: 'Your account is suspended.' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, validUser.password);
@@ -289,6 +302,30 @@ const checkEmailAvailability = async (req, res, next) => {
     }
 };
 
+
+const updateUserStatus = async (req, res, next) => {
+    try {
+        const { userId, status } = req.body;
+
+        if (!['pending', 'approved', 'hold', 'suspended'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.status = status;
+        await user.save();
+
+        res.status(200).json({ message: 'User status updated successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
   
   
 module.exports = {
@@ -299,5 +336,6 @@ module.exports = {
     resetpassword,
     resetPasswordPage,
     getUserDetails,
-    checkEmailAvailability
+    checkEmailAvailability,
+    updateUserStatus
 };

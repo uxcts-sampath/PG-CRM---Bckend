@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema({
     state: { type: String, required: true },
     country: { type: String, required: true },
     userSize: { type: String, required: true },
-    created_at: { type: Date, default: Date.now }
+    created_at: { type: Date, default: Date.now },
+    status: { type: String, enum: ['pending', 'approved', 'hold', 'suspended'], default: 'pending' } 
 });
 
 module.exports = mongoose.model('User', userSchema);
