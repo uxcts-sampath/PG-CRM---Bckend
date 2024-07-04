@@ -1,396 +1,115 @@
-// const Salary = require('../models/salary');
-// const salaryController = require('./salary.controller');
-// const hostelStaffController = require('./hostelstaff.controller'); // Import the createStaff controller
-// const HostelStaff = require('../models/hostelStaff');
-// const { updateStaffStatus } = require('./hostelstaff.controller'); // Assuming updateStaffStatus is exported
-
-
-
-
-// const paySalary = async (req, res) => {
-//     try {
-//         const { id } = req.params; // ID of the staff member
-//         const { date, total, modeofPayment, customAmount } = req.body;
-
-//         // Fetch the staff member by ID
-//         const staff = await HostelStaff.findById(id);
-
-//         if (!staff) {
-//             return res.status(404).json({ message: 'Staff not found' });
-//         }
-
-//         // Get the billing date and cycle from the staff member
-//         const billingDate = new Date(staff.billingDate);
-//         const billingCycle = staff.billingCycle; // 'monthly' or 'yearly'
-
-//         // Calculate the next billing date based on the billing cycle
-//         let nextBillingDate;
-//         if (billingCycle === 'monthly') {
-//             nextBillingDate = new Date(billingDate);
-//             nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-//         } else if (billingCycle === 'yearly') {
-//             nextBillingDate = new Date(billingDate);
-//             nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
-//         } else {
-//             return res.status(400).json({ message: 'Invalid billing cycle' });
-//         }
-
-//         // Calculate the total paid amount for the current billing cycle
-//         const totalPaidResult = await Salary.aggregate([
-//             { $match: { staff: id, date: { $gte: billingDate, $lt: nextBillingDate } } },
-//             { $group: { _id: null, totalPaid: { $sum: "$total" } } }
-//         ]);
-
-//         const totalPaid = totalPaidResult.length > 0 ? totalPaidResult[0].totalPaid : 0;
-
-//         // Calculate the payable amount and outstanding amount based on the billing cycle
-//         let payableAmount, outstandingAmount;
-//         if (billingCycle === 'monthly' && totalPaid === 0) {
-//             // For the first payment in the monthly billing cycle
-//             payableAmount = staff.amount;
-//             outstandingAmount = staff.amount - total;
-//         } else if (billingCycle === 'monthly') {
-//             // For subsequent payments in the monthly billing cycle
-//             payableAmount = staff.amount;
-//             outstandingAmount = staff.amount - (totalPaid + total);
-//         } else if (billingCycle === 'yearly' && totalPaid === 0) {
-//             // For the first payment in the yearly billing cycle
-//             payableAmount = staff.amount;
-//             outstandingAmount = staff.amount - total;
-//         } else {
-//             // For subsequent payments in the yearly billing cycle
-//             payableAmount = staff.amount;
-//             outstandingAmount = staff.amount - (totalPaid + total);
-//         }
-
-//         // Ensure the outstanding amount is not negative
-//         outstandingAmount = Math.max(outstandingAmount, 0);
-
-//         // Calculate subTotal based on payableAmount if it is there, otherwise use outstandingAmount
-//         const subTotal = payableAmount > 0 ? payableAmount : outstandingAmount;
-
-//         // Update total based on customAmount, if customAmount is provided
-//         const calculatedTotal = customAmount ? customAmount : total;
-
-//         // Create a new salary record
-//         const newSalary = new Salary({
-//             staff: id,
-//             date,
-//             payableAmount,
-//             outstandingAmount,
-//             modeofPayment,
-//             subTotal,
-//             total: calculatedTotal,
-//             customAmount
-//         });
-
-//         await newSalary.save();
-
-//         // Update staff's status based on outstanding amount
-//         if (outstandingAmount === 0) {
-//             staff.status = 'paid';
-//         } else {
-//             staff.status = 'pending';
-//         }
-
-//         // Update the staff's billing date to the next billing date
-//         staff.billingDate = nextBillingDate;
-//         await staff.save();
-
-//         res.status(200).json({ message: 'Salary paid successfully', salary: newSalary });
-//     } catch (error) {
-//         console.error(`Error: ${error.message}`);
-//         res.status(500).json({ message: error.message });
-//     }
-// };
-
-
-
-
-// const paySalary = async (req, res) => {
-//     try {
-//         const { id } = req.params; // ID of the staff member
-//         const { date, total, modeofPayment, customAmount } = req.body;
-
-//         // Fetch the staff member by ID
-//         const staff = await HostelStaff.findById(id);
-
-//         if (!staff) {
-//             return res.status(404).json({ message: 'Staff not found' });
-//         }
-
-//         // Get the billing date and cycle from the staff member
-//         const billingDate = new Date(staff.billingDate);
-//         const billingCycle = staff.billingCycle; // 'monthly' or 'yearly'
-
-//         // Calculate the next billing date based on the billing cycle
-//         let nextBillingDate;
-//         if (billingCycle === 'monthly') {
-//             nextBillingDate = new Date(billingDate);
-//             nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-//         } else if (billingCycle === 'yearly') {
-//             nextBillingDate = new Date(billingDate);
-//             nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
-//         } else {
-//             return res.status(400).json({ message: 'Invalid billing cycle' });
-//         }
-
-//         // Calculate the total paid amount for the current billing cycle
-//         const totalPaidResult = await Salary.aggregate([
-//             { $match: { staff: id, date: { $gte: billingDate, $lt: nextBillingDate } } },
-//             { $group: { _id: null, totalPaid: { $sum: "$total" } } }
-//         ]);
-
-//         const totalPaid = totalPaidResult.length > 0 ? totalPaidResult[0].totalPaid : 0;
-
-//         // Determine if it's the first payment in the billing cycle
-//         const isFirstPayment = totalPaid === 0;
-
-//         // Calculate the payable amount and outstanding amount based on the billing cycle
-//         let payableAmount, outstandingAmount;
-//         if (isFirstPayment) {
-//             payableAmount = staff.amount;
-//             outstandingAmount = staff.amount - total;
-//         } else {
-//             payableAmount = 0;
-//             outstandingAmount = staff.amount - (totalPaid + total);
-//         }
-
-//         // Ensure the outstanding amount is not negative
-//         outstandingAmount = Math.max(outstandingAmount, 0);
-
-//         // Calculate subTotal based on the total paid in the current cycle
-//         const calculatedSubTotal = isFirstPayment ? payableAmount : outstandingAmount;
-
-//         // Update total based on customAmount, if customAmount is provided
-//         const calculatedTotal = customAmount ? customAmount : total;
-
-//         // Create a new salary record
-//         const newSalary = new Salary({
-//             staff: id,
-//             date,
-//             payableAmount,
-//             outstandingAmount,
-//             modeofPayment,
-//             subTotal: calculatedSubTotal,
-//             total: calculatedTotal,
-//             customAmount
-//         });
-
-//         await newSalary.save();
-
-//         // Update staff's status based on outstanding amount
-//         if (outstandingAmount === 0) {
-//             staff.status = 'paid';
-//         } else {
-//             staff.status = 'pending';
-//         }
-
-//         await staff.save();
-
-//         res.status(200).json({ message: 'Salary paid successfully', salary: newSalary });
-//     } catch (error) {
-//         console.error(`Error: ${error.message}`);
-//         res.status(500).json({ message: error.message });
-//     }
-// };
-
-
-
-
-
-
-// module.exports = {
-//     paySalary
-// };
-
-
-
-
-// const Salary = require('../models/salary');
-// const HostelStaff = require('../models/hostelStaff');
-
-
-
-// const paySalary = async (req, res) => {
-//     try {
-//         const { id } = req.params; // ID of the staff member
-//         const { date, total, modeofPayment, customAmount } = req.body;
-
-//         // Fetch the staff member by ID
-//         const staff = await HostelStaff.findById(id);
-
-//         if (!staff) {
-//             return res.status(404).json({ message: 'Staff not found' });
-//         }
-
-//         // Calculate billing start and end dates based on billing cycle
-//         const paymentDate = new Date(date);
-//         let billingStartDate, billingEndDate;
-
-//         if (staff.billingCycle === 'monthly') {
-//             billingStartDate = new Date(staff.billingDate);
-//             billingStartDate.setMonth(billingStartDate.getMonth() - 1);
-//             billingEndDate = new Date(staff.billingDate);
-//         } else if (staff.billingCycle === 'yearly') {
-//             billingStartDate = new Date(staff.billingDate);
-//             billingStartDate.setFullYear(billingStartDate.getFullYear() - 1);
-//             billingEndDate = new Date(staff.billingDate);
-//         } else {
-//             return res.status(400).json({ message: 'Invalid billing cycle' });
-//         }
-
-//         // Calculate the total paid amount for the current billing cycle
-//         const totalPaidResult = await Salary.aggregate([
-//             { $match: { staff: id, date: { $gte: billingStartDate, $lt: billingEndDate } } },
-//             { $group: { _id: null, totalPaid: { $sum: "$total" } } }
-//         ]);
-
-//         const totalPaid = totalPaidResult.length > 0 ? totalPaidResult[0].totalPaid : 0;
-
-//         // Determine if it's the first payment in the billing cycle
-//         const isFirstPayment = totalPaid === 0;
-
-//         // Calculate the payable amount and outstanding amount based on the billing cycle
-//         let payableAmount, outstandingAmount;
-//         if (isFirstPayment) {
-//             payableAmount = staff.amount;
-//             outstandingAmount = staff.amount - total;
-//         } else {
-//             payableAmount = 0;
-//             outstandingAmount = staff.amount - (totalPaid + total);
-//         }
-
-//         // Ensure the outstanding amount is not negative
-//         outstandingAmount = Math.max(outstandingAmount, 0);
-
-//         // Calculate subTotal based on the total paid in the current cycle
-//         const calculatedSubTotal = isFirstPayment ? payableAmount : outstandingAmount;
-
-//         // Update total based on customAmount, if customAmount is provided
-//         const calculatedTotal = customAmount ? customAmount : total;
-
-//         // Create a new salary record
-//         const newSalary = new Salary({
-//             staff: id,
-//             date,
-//             payableAmount,
-//             outstandingAmount,
-//             modeofPayment,
-//             subTotal: calculatedSubTotal,
-//             total: calculatedTotal,
-//             customAmount
-//         });
-
-//         await newSalary.save();
-
-//         // Update staff's status based on outstanding amount
-//         if (outstandingAmount === 0) {
-//             staff.status = 'paid';
-//         } else {
-//             staff.status = 'pending';
-//         }
-
-//         // Update staff's next billing date
-//         staff.nextBillingDate = billingEndDate;
-//         await staff.save();
-
-//         res.status(200).json({ message: 'Salary paid successfully', salary: newSalary });
-//     } catch (error) {
-//         console.error(`Error: ${error.message}`);
-//         res.status(500).json({ message: error.message });
-//     }
-// };
-
-
-// module.exports = {
-//     paySalary
-// };
-
-
 const Salary = require('../models/salary');
 const HostelStaff = require('../models/hostelStaff');
 
-const paySalary = async (req, res) => {
+const generateNextBillingDate = (currentBillingDate, billingCycle) => {
+    const date = new Date(currentBillingDate);
+    switch (billingCycle) {
+        case 'monthly':
+            date.setMonth(date.getMonth() + 1);
+            break;
+        case 'quarterly':
+            date.setMonth(date.getMonth() + 3);
+            break;
+        // Add more cases for other billing cycles if needed
+        default:
+            throw new Error('Unsupported billing cycle');
+    }
+    return date;
+};
+
+const createSalary = async (req, res) => {
     try {
-        const { id } = req.params; // ID of the staff member
-        const { date, total, modeofPayment, customAmount } = req.body;
-
-        // Fetch the staff member by ID
-        const staff = await HostelStaff.findById(id);
-
-        if (!staff) {
-            return res.status(404).json({ message: 'Staff not found' });
-        }
-
-        // Calculate billing start and end dates based on billing cycle
-        const paymentDate = new Date(date);
-        const nextBillingDate = new Date(staff.nextBillingDate);
-
-        // Check if it's the first payment after the nextBillingDate
-        const isFirstPaymentAfterNextBillingDate = paymentDate >= nextBillingDate;
-
-        // Calculate payable amount only if it's the first payment after nextBillingDate
-        let payableAmount = 0;
-        if (isFirstPaymentAfterNextBillingDate) {
-            payableAmount = staff.amount;
-        }
-
-        // Calculate the total paid amount for the current billing cycle
-        const totalPaidResult = await Salary.aggregate([
-            { $match: { staff: id, date: { $gte: staff.billingDate, $lt: nextBillingDate } } },
-            { $group: { _id: null, totalPaid: { $sum: "$total" } } }
-        ]);
-        const totalPaid = totalPaidResult.length > 0 ? totalPaidResult[0].totalPaid : 0;
-
-        // Calculate outstanding amount only if it's not the first payment after nextBillingDate
-        let outstandingAmount = 0;
-        if (!isFirstPaymentAfterNextBillingDate) {
-            outstandingAmount = staff.amount - totalPaid - total;
-            // Ensure the outstanding amount is not negative
-            outstandingAmount = Math.max(outstandingAmount, 0);
-        }
-
-        // Calculate subTotal based on the total paid in the current cycle
-        const calculatedSubTotal = isFirstPaymentAfterNextBillingDate ? payableAmount : outstandingAmount;
-
-        // Update total based on customAmount, if customAmount is provided
-        const calculatedTotal = customAmount ? customAmount : total;
-
-        // Create a new salary record
-        const newSalary = new Salary({
-            staff: id,
-            date,
-            payableAmount,
-            outstandingAmount,
+        const { staffId } = req.params;
+        const {
+            payableAmount = 0,
+            outstandingAmount = 0,
             modeofPayment,
-            subTotal: calculatedSubTotal,
-            total: calculatedTotal,
-            customAmount
+            customAmount = 0,
+            date // Assuming 'date' is the payment date from req.body
+        } = req.body;
+
+    
+
+        const staff = await HostelStaff.findById(staffId);
+        if (!staff) {
+            return res.status(404).json({ message: 'Staff not found for staffId: ' + staffId });
+        }
+
+        const payableAmountNum = Number(payableAmount);
+        const outstandingAmountNum = Number(outstandingAmount);
+        const customAmountNum = Number(customAmount);
+
+        // Calculate subTotal as the sum of payableAmount and outstandingAmount
+        const subTotal = payableAmountNum + outstandingAmountNum;
+
+        // Calculate total based on customAmount if provided; otherwise, use subTotal
+        let total = customAmountNum > 0 ? customAmountNum : subTotal;
+
+        // Calculate outstandingAmount as the difference between subTotal and total
+        const outstandingAmountCalc = subTotal - total;
+
+        const paymentDate = new Date(date);
+
+        // Check if billingDate for the current billing cycle needs to be generated
+        if (!staff.billingDate || staff.billingDate <= paymentDate) {
+            // Generate billingDate for the first transaction in the billing cycle
+            staff.billingDate = generateNextBillingDate(staff.billingDate || paymentDate, staff.billingCycle);
+
+            // Save the updated billingDate
+            await staff.save();
+        }
+
+        // Check if payableAmount needs to be generated for the current billing cycle
+        const lastBillingDate = new Date(staff.lastBillingDateGenerated || 0);
+        if (lastBillingDate < staff.billingDate) {
+            // Logic for generating the payableAmount if it's not static
+            // Here, we assume payableAmount is provided; modify as needed if there's a generation logic
+            staff.lastBillingDateGenerated = paymentDate;
+            await staff.save();
+        }
+
+        const newSalary = new Salary({
+            staff: staffId,
+            payableAmount: payableAmountNum,
+            modeofPayment,
+            subTotal,
+            total,
+            outstandingAmount: outstandingAmountCalc,
+            customAmount: customAmountNum,
+            date: paymentDate // Convert 'date' to Date object
         });
 
-        await newSalary.save();
+        const savedSalary = await newSalary.save();
 
-        // Update staff's status based on outstanding amount
-        staff.status = calculatedSubTotal === 0 ? 'paid' : 'pending';
+        const allSalaries = await Salary.find({ staff: staffId });
 
-        // Update staff's next billing date if it's the first payment after nextBillingDate
-        if (isFirstPaymentAfterNextBillingDate) {
-            staff.nextBillingDate = nextBillingDate;
-        }
 
-        await staff.save();
-
-        res.status(200).json({ message: 'Salary paid successfully', salary: newSalary });
-    } catch (error) {
-        console.error(`Error: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        res.status(201).json({
+            message: 'Salary paid successfully',
+            newSalary: savedSalary,
+            allSalaries: allSalaries
+        });    } catch (error) {
+        console.error('Error in createSalary:', error);
+        res.status(400).json({ message: error.message });
     }
 };
 
-module.exports = {
-    paySalary
+const getTransactionsForStaffId = async (req, res) => {
+    try {
+        const { staffId } = req.params;
+
+        const allSalaries = await Salary.find({ staff: staffId });
+
+        res.status(200).json(allSalaries);
+    } catch (error) {
+        console.error('Error in getTransactionsForStaffId:', error);
+        res.status(400).json({ message: error.message });
+    }
 };
 
 
+module.exports = {
+    createSalary,
+    getTransactionsForStaffId
+};
 

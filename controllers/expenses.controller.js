@@ -1,4 +1,5 @@
 const Expense = require('../models/expenses');
+const Salary = require('../models/salary');
 
 // Create Expense
 const createExpense = async (req, res) => {
@@ -48,39 +49,39 @@ const deleteExpense = async (req, res) => {
   }
 };
 
-// Get All Expenses
 const getAllExpenses = async (req, res) => {
   try {
-    const { userId } = req;
-    const expenseList = await Expense.find({ userId });
+    // Fetch all expenses for the user
+    const expenseList = await Expense.find({});
 
-    res.status(200).json(expenseList);
+    // Fetch all salaries
+    const salaryList = await Salary.find({});
+
+    // Map salary data to match the expense structure
+    const salaryExpenses = salaryList.map(salary => ({
+      _id: salary._id.toString(), // Ensure _id is converted to string if ObjectId
+      amount: salary.total, // Assuming 'total' from Salary is the expense amount
+      description: 'Salary Payment', // Add any description if necessary
+      category: 'Salary', // Add appropriate category for salary expenses
+      userId: salary.staff.toString(), // Assuming 'staff' is the user ID for salary
+      date: salary.date // Assuming 'date' from Salary is the expense date
+    }));
+
+    // Combine both expenseList and salaryExpenses
+    const allExpenses = [...expenseList, ...salaryExpenses];
+
+    res.status(200).json(allExpenses);
   } catch (error) {
+    console.error('Error in getAllExpenses:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get Expense by ID
-// const getExpenseById = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { userId } = req;
-//     const expense = await Expense.findOne({ _id: id, userId });
 
-//     if (!expense) {
-//       return res.status(404).json({ message: 'Expense not found' });
-//     }
-
-//     res.status(200).json(expense);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 module.exports = {
   createExpense,
   editExpense,
   deleteExpense,
   getAllExpenses,
-//   getExpenseById
 };

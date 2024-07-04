@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const {paySalary} = require('../controllers/salary.controller');
+const {createSalary,getTransactionsForStaffId} = require('../controllers/salary.controller');
 
 // Middleware function to verify JWT token and attach userId to the request object
 const verifyToken = (req, res, next) => {
@@ -21,6 +21,8 @@ const verifyToken = (req, res, next) => {
   };
 
 // Route to pay salary to a staff member
-router.post('/paysalary/:id',verifyToken, paySalary);
+router.post('/paysalary/:staffId',verifyToken, createSalary);
+
+router.get('/getsalary/:staffId',verifyToken,getTransactionsForStaffId)
 
 module.exports = router;

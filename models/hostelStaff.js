@@ -29,12 +29,12 @@ const hostelStaffSchema = new mongoose.Schema({
         required: true
       },
     previouslyWorkedAt: { type: String },
-    uploadAadhar: { type: String }, // You may store the file path or reference to the uploaded file
-    addressProof: { type: String }, // You may store the file path or reference to the uploaded file
+    uploadAadhar: { type: String }, 
+    addressProof: { type: String }, 
     address: { type: String, required: true },
     residenceCity: { type: String, required: true },
     state: { type: String, required: true },
-    profilePhoto: { type: String }, // You may store the file path or reference to the uploaded file
+    profilePhoto: { type: String }, 
     referenceMobile: { type: String },
     billingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'], required: true },
     billingDate: { type: Date },
@@ -44,8 +44,7 @@ const hostelStaffSchema = new mongoose.Schema({
       required: true,
       default: 'pending'
   },
-  nextBillingDate:{type:Date}
 });
 
 const HostelStaff = mongoose.model('HostelStaff', hostelStaffSchema);
-module.exports = HostelStaff;
+module.exports = HostelStaff; 

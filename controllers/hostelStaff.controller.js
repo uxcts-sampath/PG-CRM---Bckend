@@ -1,27 +1,15 @@
 const HostelStaff = require('../models/hostelStaff');
 
-// Create Staff
-// const createStaff = async (req, res) => {
-//     try {
-//         // Extract necessary fields from the request body
-//         const { userId } = req;
-//         const staffData = { ...req.body, userId };
-
-//         const newStaff = new HostelStaff(staffData); 
-//         const savedStaff = await newStaff.save();
-
-//         res.status(201).json(savedStaff);
-//     } catch (error) {
-//         res.status(400).json({ message: error.message });
-//     }
-// };
-
 
 
 const createStaff = async (req, res) => {
     try {
         const { userId } = req;
-        const staffData = { ...req.body, userId, status: 'pending' };
+        const { billingCycle, billingDate: initialBillingDate } = req.body;
+        let billingDate = initialBillingDate || new Date(); // Default to current date if not provided
+
+
+        const staffData = { ...req.body, userId, status: 'pending',billingDate ,billingCycle};
 
         const newStaff = new HostelStaff(staffData); 
         const savedStaff = await newStaff.save();

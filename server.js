@@ -6,6 +6,8 @@ let port = process.env.PORT || 3000;
 const userRoutes = require('./routes/user.route')
 const authRoutes = require('./routes/auth.route')
 
+const bodyParser = require('body-parser');
+
 const cors = require("cors");
 const floorRoutes = require('./routes/floor.route');
 const roomRoutes = require('./routes/room.route');
@@ -17,7 +19,10 @@ const PriceRoute = require ("./routes/price.route")
 const Income = require ('./routes/income.route')
 const Expenses = require('./routes/expenses.route')
 const Salary = require('./routes/salary.route')
-const paymentPlan = require('./routes/paymentPlan.route')
+const paymentPlan = require('./routes/paymentPlan.route');
+
+
+
 
 
 mongoose.connect(process.env.MONGO_URI)
@@ -29,9 +34,19 @@ mongoose.connect(process.env.MONGO_URI)
 })
 
 const app = express();
+
+app.use(bodyParser.urlencoded({extended:true}))
+app.use(bodyParser.json());
+
+
+
 app.use(express.json()); 
 
 app.use(express.static('public'));
+
+
+
+
 
 
 app.use(cors());

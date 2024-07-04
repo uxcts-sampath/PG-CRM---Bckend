@@ -3,9 +3,10 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { getAllHostelUsers, createHostelUser, getHostelUserById, updateHostelUserById, deleteHostelUserById, getAllStudentHostelUsers,
   getAllWorkingEmployeeHostelUsers,
-  getAllGuestHostelUsers,processPayment,getPaymentDetails,renderCreateFormWithAvailableBeds} = require('../controllers/hostelUsers.controller');
+  getAllGuestHostelUsers,processPayment,getPaymentDetails,deleteProfilePhoto} = require('../controllers/hostelUsers.controller');
 
   const multer = require('multer');
+
 
 
   // Multer configuration (if not already configured globally)
@@ -44,8 +45,11 @@ const verifyToken = (req, res, next) => {
 router.get('/hostelalluser', verifyToken, (req, res) => getAllHostelUsers(req, res, req.userId));
 router.post('/createhosteluser', verifyToken,upload.single('profilePhoto'), (req, res) => createHostelUser(req, res, req.userId));
 router.get('/hosteluser/:id', verifyToken, (req, res) => getHostelUserById(req, res, req.params.userId, req.params.id));
-router.put('/updatehosteluser/:id', verifyToken, (req, res) => updateHostelUserById(req, res, req.userId, req.params.id));
+router.put('/updatehosteluser/:id', verifyToken,upload.single('profilePhoto'), (req, res) => updateHostelUserById(req, res, req.userId, req.params.id));
 router.delete('/hosteluser/:id', verifyToken, deleteHostelUserById);
+
+router.delete('/hosteluser/:id/deletephoto',verifyToken, deleteProfilePhoto);
+
 
 // GET all student hostel users
 router.get('/students', verifyToken, (req, res) => getAllStudentHostelUsers(req, res, req.params.userId));
