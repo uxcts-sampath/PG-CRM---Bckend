@@ -14,7 +14,6 @@ const createStaff = async (req, res) => {
         const newStaff = new HostelStaff(staffData); 
         const savedStaff = await newStaff.save();
 
-        console.log('Saved Staff:', savedStaff);
 
         res.status(201).json(savedStaff);
     } catch (error) {

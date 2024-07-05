@@ -63,8 +63,6 @@ const deleteFloor = async (req, res) => {
     const userId = req.userId; // Extracted from JWT token
     const floorId = req.params.id;
   
-    console.log('Floor ID:', floorId);
-    console.log('User ID:', userId);
   
     try {
       // Find the floor by ID and ensure that it belongs to the current user

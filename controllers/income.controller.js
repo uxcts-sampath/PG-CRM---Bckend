@@ -3,7 +3,6 @@ const HostelUser = require('../models/hostelUsers');
 
 const getPaymentRecordsAndTotalIncome = async (startDate, endDate) => {
     try {
-        console.log(`Fetching records between ${startDate.toISOString()} and ${endDate.toISOString()}`);
 
         const paymentRecords = await HostelUser.aggregate([
             { $unwind: '$paymentHistory' },
@@ -32,7 +31,6 @@ const getPaymentRecordsAndTotalIncome = async (startDate, endDate) => {
             }
         ]);
 
-        console.log("Payment Records:", paymentRecords);
 
         const totalIncomeResult = await HostelUser.aggregate([
             { $unwind: '$paymentHistory' },
@@ -49,7 +47,6 @@ const getPaymentRecordsAndTotalIncome = async (startDate, endDate) => {
 
         const totalIncome = totalIncomeResult.length > 0 ? totalIncomeResult[0].totalIncome : 0;
 
-        console.log("Total Income Calculated:", totalIncome);
 
         return { paymentRecords, totalIncome };
     } catch (error) {
@@ -83,11 +80,19 @@ const getIncomeRecords = async (req, res) => {
                 return res.status(400).json({ message: 'Invalid type parameter' });
         }
 
-        console.log(`Query Parameters: type=${type}, date=${date}`);
-        console.log(`Date Range: startDate=${startDate.toISOString()}, endDate=${endDate.toISOString()}`);
 
         const { paymentRecords, totalIncome } = await getPaymentRecordsAndTotalIncome(startDate, endDate);
-        res.status(200).json({ paymentRecords, totalIncome });
+
+
+        // Format dates to only include date part
+        const formattedPaymentRecords = paymentRecords.map(record => ({
+            ...record,
+            billingDate: moment(record.billingDate).format('YYYY-MM-DD'),
+            paymentDate: moment(record.paymentDate).format('YYYY-MM-DD')
+        }));
+
+        res.status(200).json({ paymentRecords: formattedPaymentRecords, totalIncome });
+
     } catch (error) {
         console.error('Error fetching income records:', error);
         res.status(500).json({ message: 'Failed to fetch income records' });

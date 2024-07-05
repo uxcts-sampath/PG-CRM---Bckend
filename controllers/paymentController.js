@@ -78,7 +78,6 @@ const newPayment = async (req, res) => {
                             // Save payment data to the database
                             await Payment.create(paymentData);
 
-                            console.log('payment Daaata',paymentData)
                             
                             // Return success response
                             return res.status(200).json({ success: true, message: 'Free plan activated successfully' });
@@ -125,7 +124,6 @@ const newPayment = async (req, res) => {
             };
 
             const response = await axios.request(options);
-            console.log('response', response.data);
 
             const transactionId = response.data?.data?.merchantTransactionId;
 
@@ -198,7 +196,6 @@ const checkStatus = async (req, res) => {
         };
 
         const response = await axios.request(options);
-        console.log(response.data);
         if (response.data.success === true) {
             if (response.data.code === "PAYMENT_PENDING"){
                 await Payment.findOneAndUpdate({ transactionId: merchantTransactionId }, { payment_status: "pending" });

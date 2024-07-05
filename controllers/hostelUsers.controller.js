@@ -49,7 +49,6 @@
 
             if (req.file) {
                 // Save the file details to your database or perform necessary actions
-                console.log("Uploaded profile photo:", req.file);
                 userData.profilePhoto = req.file.filename;  // Assuming you save the filename to the user data
             }
 
@@ -113,7 +112,6 @@
             });
             await hostelUser.save();
             res.status(201).json({ ...hostelUser.toJSON(), endDate, userReferenceId,profilePhoto:userData.profilePhoto });
-            console.log(hostelUser)
             await foundRoom.save();
         } catch (error) {
             console.error('Error creating hostel user:', error);
@@ -204,47 +202,6 @@
 
 
 
- 
-
-    // const updateHostelUserById = async (req, res, userId, id) => {
-    //     try {
-    //         const { bed: newBedNumber, floor: newFloorId, room: newRoomId, ...userData } = req.body;
-    
-    //         console.log("Request", req.body);
-    
-    //         const hostelUser = await HostelUser.findById(id);
-    //         if (!hostelUser) {
-    //             return res.status(404).json({ success: false, message: 'Hostel user not found' });
-    //         }
-    
-    //         if (newBedNumber && newBedNumber !== hostelUser.bed) {
-    //             // Check if newFloorId and newRoomId are defined before toString()
-    //             const newBed = await assignBed(
-    //                 newFloorId ? newFloorId.toString() : '',
-    //                 newRoomId ? newRoomId.toString() : '',
-    //                 newBedNumber
-    //             );
-    //             if (!newBed) {
-    //                 return res.status(400).json({ success: false, message: 'Failed to assign new bed' });
-    //             }
-    //             // Rest of your logic for updating room and bed
-    //         }
-    
-    //         // Update user's details
-    //         Object.assign(hostelUser, userData);
-    
-    //         const updatedUser = await hostelUser.save();
-    
-    //         console.log('User updated successfully:', updatedUser);
-    
-    //         res.status(200).json({ success: true, message: 'User updated successfully', hostelUser: updatedUser });
-    //     } catch (error) {
-    //         console.error('Error updating user:', error);
-    //         res.status(500).json({ success: false, message: 'Internal server error' });
-    //     }
-    // };
-    
-
     const updateHostelUserById = async (req, res, userId, id) => {
         try {
             // Access the form data fields excluding 'bed'
@@ -258,7 +215,6 @@
                 validBillingAmount = 0; // Or any default value or logic suitable for your application
             }
     
-            console.log("Request body:", req.body);
     
             // Access the files if any (e.g., profilePhoto)
             const profilePhoto = req.file;
@@ -279,7 +235,6 @@
     
             const updatedUser = await hostelUser.save();
     
-            console.log('User updated successfully:', updatedUser);
     
             res.status(200).json({ success: true, message: 'User updated successfully', hostelUser: updatedUser });
         } catch (error) {

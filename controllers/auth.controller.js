@@ -258,8 +258,7 @@ const resetPasswordPage = async (req, res, next) => {
     try {
         // Extract userId and token from req.params
         const { userId, token } = req.params;
-        console.log("userId:", userId);
-        console.log("token:", token);
+       
 
         // Validate the token
         jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {

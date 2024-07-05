@@ -81,6 +81,15 @@ const createSalary = async (req, res) => {
 
         const savedSalary = await newSalary.save();
 
+        // Update staff's status based on outstanding amount
+        if (outstandingAmountCalc === 0) {
+            staff.status = 'paid';
+        } else {
+            staff.status = 'pending';
+        }
+        await staff.save();
+
+
         const allSalaries = await Salary.find({ staff: staffId });
 
 
@@ -100,7 +109,13 @@ const getTransactionsForStaffId = async (req, res) => {
 
         const allSalaries = await Salary.find({ staff: staffId });
 
-        res.status(200).json(allSalaries);
+          // Format date in each salary object
+          const formattedSalaries = allSalaries.map(salary => ({
+            ...salary.toObject(),
+            date: salary.date.toLocaleDateString() // Format date to only include the date part
+        }));
+
+        res.status(200).json(formattedSalaries);
     } catch (error) {
         console.error('Error in getTransactionsForStaffId:', error);
         res.status(400).json({ message: error.message });

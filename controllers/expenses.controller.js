@@ -49,26 +49,83 @@ const deleteExpense = async (req, res) => {
   }
 };
 
+
+// const getAllExpenses = async (req, res) => {
+//   try {
+//       const { userId } = req;
+
+//       // Fetch all expenses for the user
+//       const expenses = await Expense.find({ userId });
+
+//       // Fetch all salaries related to the user's hostel staff
+//       const salaries = await Salary.find().populate({
+//           path: 'staff',
+//           match: { userId } // This ensures we only get salaries for the staff belonging to the user
+//       });
+
+//       // Filter salaries that actually match the user's staff
+//       const userSalaries = salaries.filter(salary => salary.staff);
+
+//       // Map salaries to match the expense structure
+//       const salaryExpenses = userSalaries.map(salary => ({
+//           _id: salary._id.toString(),
+//           amount: salary.total,
+//           description: 'Salary Payment',
+//           category: 'Salary',
+//           userId: salary.staff.userId.toString(),
+//       date: salary.date.toLocaleDateString() // Format date to only include the date part
+//       }));
+
+//       // Combine both expenses and salaries
+//       const allExpenses = [...expenses, ...salaryExpenses];
+
+//       res.status(200).json(allExpenses);
+//   } catch (error) {
+//       console.error('Error in getAllExpenses:', error);
+//       res.status(500).json({ message: error.message });
+//   }
+// };
+
+
+
 const getAllExpenses = async (req, res) => {
   try {
+    const { userId } = req;
+
     // Fetch all expenses for the user
-    const expenseList = await Expense.find({});
+    const expenses = await Expense.find({ userId });
 
-    // Fetch all salaries
-    const salaryList = await Salary.find({});
+    // Fetch all salaries related to the user's hostel staff
+    const salaries = await Salary.find().populate({
+      path: 'staff',
+      match: { userId } // This ensures we only get salaries for the staff belonging to the user
+    });
 
-    // Map salary data to match the expense structure
-    const salaryExpenses = salaryList.map(salary => ({
-      _id: salary._id.toString(), // Ensure _id is converted to string if ObjectId
-      amount: salary.total, // Assuming 'total' from Salary is the expense amount
-      description: 'Salary Payment', // Add any description if necessary
-      category: 'Salary', // Add appropriate category for salary expenses
-      userId: salary.staff.toString(), // Assuming 'staff' is the user ID for salary
-      date: salary.date // Assuming 'date' from Salary is the expense date
+    // Filter salaries that actually match the user's staff
+    const userSalaries = salaries.filter(salary => salary.staff);
+
+    // Map salaries to match the expense structure
+    const salaryExpenses = userSalaries.map(salary => ({
+      _id: salary._id.toString(),
+      amount: salary.total,
+      description: 'Salary Payment',
+      category: 'Salary',
+      userId: salary.staff.userId.toString(),
+      date: salary.date.toLocaleDateString() // Format date to only include the date part
     }));
 
-    // Combine both expenseList and salaryExpenses
-    const allExpenses = [...expenseList, ...salaryExpenses];
+    // Map expenses to format date correctly
+    const formattedExpenses = expenses.map(expense => ({
+      _id: expense._id.toString(),
+      amount: expense.amount,
+      description: expense.description,
+      category: expense.category,
+      userId: expense.userId.toString(),
+      date: expense.date.toLocaleDateString() // Format date to only include the date part
+    }));
+
+    // Combine both formatted expenses and salary expenses
+    const allExpenses = [...formattedExpenses, ...salaryExpenses];
 
     res.status(200).json(allExpenses);
   } catch (error) {
@@ -76,7 +133,6 @@ const getAllExpenses = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 
 module.exports = {
