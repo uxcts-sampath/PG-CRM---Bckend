@@ -1,23 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const uploads = require('../middleware/uploads')
 const { getAllHostelUsers, createHostelUser, getHostelUserById, updateHostelUserById, deleteHostelUserById, getAllStudentHostelUsers,
   getAllWorkingEmployeeHostelUsers,
-  getAllGuestHostelUsers,processPayment,getPaymentDetails,deleteProfilePhoto} = require('../controllers/hostelUsers.controller');
+  getAllGuestHostelUsers,processPayment,getPaymentDetails,deleteProfilePhoto,bulkUploadHostelUsers} = require('../controllers/hostelUsers.controller');
 
   const multer = require('multer');
 
 
 
-  // Multer configuration (if not already configured globally)
+ 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-      cb(null, './public/images');
+    cb(null, './public/images'); // Adjust destination directory as needed
   },
   filename: (req, file, cb) => {
-      cb(null, `${Date.now()}-${file.originalname}`);
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
+
 const upload = multer({ storage });
 
 
@@ -66,6 +68,8 @@ router.post('/processPayment',verifyToken, processPayment);
 
 // Add a new GET endpoint to retrieve payment details for a hostel user
 router.get('/paymentdetails/:userReferenceId', verifyToken, getPaymentDetails);
+
+router.post('/bulkupload', uploads.single('excelFile'), verifyToken, bulkUploadHostelUsers);
 
 
 

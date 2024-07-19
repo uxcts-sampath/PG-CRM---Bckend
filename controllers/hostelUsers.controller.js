@@ -6,6 +6,7 @@
     const Room = require('../models/rooms')
     const fs = require('fs');
     const path = require('path');
+    const csv = require("csv-parser")
 
 
 
@@ -456,6 +457,106 @@
       };
 
 
+    
+      const bulkUploadHostelUsers = async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'No file uploaded' });
+            }
+    
+            const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+            if (!fs.existsSync(uploadsDir)) {
+                fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+    
+            const filePath = path.join(uploadsDir, req.file.filename);
+            const results = [];
+    
+            fs.createReadStream(filePath)
+                .on('error', (error) => {
+                    console.error('Error reading file:', error);
+                    res.status(500).json({ success: false, message: 'Error reading file', error: error.message });
+                })
+                .pipe(csv())
+                .on('headers', (headers) => {
+                    console.log('CSV Headers:', headers);
+                    // Validate headers here if needed
+                })
+                .on('data', (data) => {
+                    console.log('Parsed data:', data);
+    
+                    // Map data from CSV to userData object
+                    const userData = {
+                        userType: data['User Type'],
+                        name: data['Name'],
+                        gender: data['Gender'],
+                        age: parseInt(data['Age']) || null,
+                        mobile: data['Mobile Number'],
+                        email: data['Email Address'],
+                        aadharNumber: data['Aadhar Number'],
+                        purposeFor: data['Purpose For'],
+                        address: data['Address'],
+                        residenceCity: data['City'],
+                        state: data['State'],
+                        parentName: data['Parent Name'],
+                        parentMobileNumber: data['Parent Mobile Number'],
+                        parentEmailAddress: data['Parent Email Address'],
+                        referenceBy: data['Reference By'],
+                        requireRoomType: data['Require Room Type'], // Ensure this matches CSV header
+                        billingCycle: data['Billing Cycle'], // Ensure this matches CSV header
+                        paymentType: data['Payment Type'], // Ensure this matches CSV header
+                        userReferenceId: generateRandomUserReferenceId(),
+                    };
+    
+                    console.log('Mapped user data:', userData);
+    
+                    // Validate required fields
+                    const missingFields = [];
+                    if (!userData.userType) missingFields.push('User Type');
+                    if (!userData.name) missingFields.push('Name');
+                    if (!userData.gender) missingFields.push('Gender');
+                    if (!userData.age) missingFields.push('Age');
+                    if (!userData.mobile) missingFields.push('Mobile Number');
+                    if (!userData.aadharNumber) missingFields.push('Aadhar Number');
+                    if (!userData.address) missingFields.push('Address');
+                    if (!userData.residenceCity) missingFields.push('City');
+                    if (!userData.state) missingFields.push('State');
+                    if (!userData.requireRoomType) missingFields.push('Require Room Type');
+                    if (!userData.billingCycle) missingFields.push('Billing Cycle');
+                    if (!userData.paymentType) missingFields.push('Payment Type');
+    
+                    if (missingFields.length > 0) {
+                        console.error(`Missing required fields: ${missingFields.join(', ')}`);
+                        return; // Skip saving this record if required fields are missing
+                    }
+    
+                    results.push(userData);
+                })
+                .on('end', async () => {
+                    try {
+                        // Insert all valid records into the database
+                        const savedUsers = await HostelUser.insertMany(results);
+                        console.log('CSV file successfully processed');
+                        res.status(200).json({ success: true, message: 'File uploaded and data processed successfully', data: savedUsers });
+                    } catch (error) {
+                        console.error('Error saving hostel users:', error);
+                        res.status(500).json({ success: false, message: 'Error saving hostel users', error: error.message });
+                    }
+                });
+    
+        } catch (error) {
+            console.error('Error in bulkUploadHostelUsers:', error.message);
+            res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+        }
+    };
+    
+    
+    
+      
+     
+    
+
+
 
     module.exports = {
         getAllHostelUsers,
@@ -471,5 +572,6 @@
         assignBed,
         processPayment,
         getPaymentDetails,
-        deleteProfilePhoto
+        deleteProfilePhoto,
+        bulkUploadHostelUsers
     };

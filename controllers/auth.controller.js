@@ -1,4 +1,3 @@
-
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const Payment = require('../models/payment')
@@ -8,16 +7,65 @@ const jwtSecret = process.env.JWT_SECRET;
 const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET; 
 const blacklistedTokens = new Set();
 var nodemailer = require('nodemailer');
+const { sendMail } = require('../helpers/sendMail');
 
 
 
+// const signup = async (req, res, next) => {
+//     try {
+//         const { fullName, hostelName, email, password, aadharNumber, dateOfBirth, phoneNumber, address, country, state, city, userSize } = req.body;
 
+//         // Check if the email already exists in the database
+//         const existingUser = await User.findOne({ email });
+//         if (existingUser) {
+//             throw errorHandler(400, 'Email already exists');
+//         }
+
+//         // Hash the password
+//         const hashedPassword = await bcrypt.hash(password, 10);
+
+//         // Create a new user object
+//         const newUser = new User({
+//             fullName,
+//             hostelName,
+//             email,
+//             password: hashedPassword,
+//             aadharNumber,
+//             dateOfBirth,
+//             phoneNumber,
+//             address,
+//             country,
+//             state,
+//             city,
+//             userSize,
+//             status: 'pending' // Set status to pending
+//         });
+
+//         // Save the new user to the database
+//         await newUser.save();
+
+    
+
+//         // Respond with success message
+//         res.status(201).json({ message: "Registration successful!" });
+
+//     await sendMail(
+//         email, // recipient's email
+//         "Welcome to Boarderbase",
+//         `Hi, ${fullName}, Thank you for registering.Please wait for Admin approval`,
+//         `<p>Hi, ${fullName},</p><p>Thank you for registering.Please wait for Admin approval</p>`
+//     );
+
+//     } catch (error) {
+//         next(error);
+//     }
+// };
 
 
 
 const signup = async (req, res, next) => {
     try {
-        const { fullName, hostelName, email, password, aadharNumber, dateOfBirth, phoneNumber, address, country, state, city, userSize } = req.body;
+        const { fullName, hostelName,gender, email, password, aadharNumber, dateOfBirth, phoneNumber, address, country, state, city, userSize } = req.body;
 
         // Check if the email already exists in the database
         const existingUser = await User.findOne({ email });
@@ -31,6 +79,7 @@ const signup = async (req, res, next) => {
         // Create a new user object
         const newUser = new User({
             fullName,
+            gender,
             hostelName,
             email,
             password: hashedPassword,
@@ -48,14 +97,129 @@ const signup = async (req, res, next) => {
         // Save the new user to the database
         await newUser.save();
 
+        
+
         // Respond with success message
         res.status(201).json({ message: "Registration successful!" });
+
+        // Send welcome email
+        await sendMail(
+            email, 
+            "Welcome to Boarderbase", 
+            `Hi, ${fullName}, Thank you for registering. Please wait for Admin approval.`,
+            `<!DOCTYPE html>
+            <html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BoarderBase Registration Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 2px solid #6455A5;
+            color: #ffffff;
+        }
+        .header img {
+            height: 40px;
+        }
+        .header a {
+            color: #6455A5;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .banner {
+            width: 100%;
+            height: 428px;
+            background-image: url('https://boarderbase.com/email-assets/welcome%20bb.png');
+            background-size: cover;
+            background-position: center;
+        }
+        .content {
+            padding: 20px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .content h1 {
+            color: #0066cc;
+        }
+        .footer {
+            padding: 20px;
+            background-color: #f4f4f4;
+            text-align: center;
+            color: #666666;
+            font-size: 12px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .footer a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        @media only screen and (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .content {
+                font-size: 14px;
+            }
+            .header {
+                flex-direction: column;
+                height: auto;
+                text-align: center;
+            }
+            .header img {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://boarderbase.com/email-assets/bb-email-logo.png" style="width:144px; height:19px" alt="BoarderBase Logo">
+            <a href="https://www.boarderbase.com">www.boarderbase.com</a>
+        </div>
+        <div class="banner"></div>
+        <div class="content">
+            <p>Dear ${fullName},</p>
+            <p>Thank you for enrolling with <strong>BoarderBase</strong>, your comprehensive hostel management software. We are excited to have you on board!</p>
+            <p>Your enrollment is currently under review by our administrative team. Please allow us some time to process your registration. You will receive an email notification once your enrollment has been approved.</p>
+            <p>If you have any questions or need further assistance, feel free to reach out to our support team at <a href="mailto:support@boarderbase.com">support@boarderbase.com</a>.</p>
+            <p>Thank you for your patience.</p>
+            <p>Best regards,<br>The BoarderBase Team</p>
+        </div>
+        <div class="footer">
+            <p>© 2024 BoarderBase. All rights reserved.</p>
+            <p>Visit our website: <a href="https://www.boarderbase.com">www.boarderbase.com</a> | Contact Support: <a href="mailto:support@boarderbase.com">support@boarderbase.com</a></p>
+            <p>Powered by Connect UX Technology Solutions Pvt Ltd.</p>
+        </div>
+    </div>
+
+
+</body></html>`
+        );
+
     } catch (error) {
         next(error);
     }
 };
-
-
 
 
 const signin = async (req, res, next) => {
@@ -132,6 +296,7 @@ const signin = async (req, res, next) => {
             user: {
                 id: validUser._id,
                 fullName: validUser.fullName,
+                gender:validUser.gender,
                 hostelName: validUser.hostelName,
                 email: validUser.email,
                 aadharNumber: validUser.aadharNumber,
@@ -150,6 +315,7 @@ const signin = async (req, res, next) => {
                 transactionId: transactionId
             }
         };
+        
 
         // Set tokens in the response header and send response
         res.setHeader('Authorization', `Bearer ${token}`);
@@ -159,19 +325,6 @@ const signin = async (req, res, next) => {
         next(error);
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 const logout = async (req, res) => {
@@ -191,7 +344,6 @@ const logout = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-
 
 
 const forgotpassword = async (req, res, next) => {
@@ -324,8 +476,6 @@ const updateUserStatus = async (req, res, next) => {
     }
 };
 
-
-  
   
 module.exports = {
     signup,

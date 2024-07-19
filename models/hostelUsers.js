@@ -16,6 +16,7 @@ const hostelUserSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     userType: { type: String, enum: ['student', 'working emp', 'guest'], required: true },
     name: { type: String, required: true },
+    gender:{type:String, enum:['male','female'],required:true},
     mobile: { type: String, required: true },
     age: { type: Number, required: true },
     fatherName: { type: String, required: true },
