@@ -15,9 +15,12 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET); 
+    console.log("Decoded JWT:", decoded); // Debugging
     req.userId = decoded.id; // Attach userId to the request object
+    console.log("User ID attached to request:", req.userId); // Debugging
     next();
   } catch (error) {
+    console.error("JWT verification error:", error); // Debugging
     return res.status(403).json({ success: false, message: 'Invalid token' });
   }
 };
@@ -26,7 +29,17 @@ const verifyToken = (req, res, next) => {
 router.post('/floor', verifyToken, async (req, res) => {
   try {
     const { userId } = req; // Access userId from the request object
-    req.body.user = userId; // Attach userId to the floor object
+
+    const existingFloor = await Floor.findOne({
+      floorNumber: req.body.floorNumber,
+      userId: userId
+    });
+
+    if (existingFloor) {
+      return res.status(400).json({ success: false, message: 'Floor number already exists for this user' });
+    }
+
+    req.body.userId = userId; // Ensure userId is attached to the floor object
     const newFloor = await Floor.create(req.body);
     res.json(newFloor);
   } catch (error) {
@@ -34,6 +47,13 @@ router.post('/floor', verifyToken, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error creating floor' });
   }
 });
+
+
+
+
+
+
+
 
 
 

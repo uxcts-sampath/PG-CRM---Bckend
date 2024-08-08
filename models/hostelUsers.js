@@ -38,7 +38,7 @@ const hostelUserSchema = new mongoose.Schema({
     bed: { type: Number },
     billingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'], required: true },
     billingDate: { type: Date },
-    paymentType: { type: String, enum: ['advance', 'fullPayment'], required: true },
+    paymentType: { type: String, enum: ['advance', 'fullPayment'] },
     amount: { type: Number },
     billingAmount: { type: Number },
     endDate: { type: Date },

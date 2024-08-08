@@ -10,4 +10,7 @@ const floorSchema = new mongoose.Schema({
     rooms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Room' }]
 });
 
+floorSchema.index({ floorNumber: 1, userId: 1 }, { unique: true });
+
+
 module.exports = mongoose.model('Floor', floorSchema);
